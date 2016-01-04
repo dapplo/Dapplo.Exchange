@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 
 namespace Dapplo.Exchange.ClientExample
 {
@@ -19,6 +20,15 @@ namespace Dapplo.Exchange.ClientExample
 			_exchange = new Exchange();
 			await _exchange.InitializeAsync();
 			Fields.IsEnabled = true;
+
+			// Show the upcoming event
+			foreach(var appointment in await _exchange.RetrieveAppointmentsAsync(DateTime.Now, DateTime.Now.AddDays(1), 5)) {
+				if(appointment.Start < DateTime.Now)
+				{
+					continue;
+				}
+				Upcoming.Content = $"Upcoming event: {appointment.Subject}";
+            }
 		}
 
 		private void Button_Click(object sender, RoutedEventArgs e)

@@ -21,12 +21,12 @@
 	along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using Microsoft.Exchange.WebServices.Data;
 using System;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Dapplo.Exchange
 {
@@ -35,7 +35,7 @@ namespace Dapplo.Exchange
 	/// </summary>
 	public class Exchange
 	{
-		private Microsoft.Exchange.WebServices.Data.ExchangeService _exchangeService;
+		private ExchangeService _exchangeService;
 		private IExchangeSettings _exchangeSettings;
 		private static bool _allowSelfSignedCertificates = true;
 
@@ -54,9 +54,9 @@ namespace Dapplo.Exchange
 		/// A simple helper to create an email message for the exchange service
 		/// </summary>
 		/// <returns>EmailMessage</returns>
-		public Microsoft.Exchange.WebServices.Data.EmailMessage CreateEmailMessage()
+		public EmailMessage CreateEmailMessage()
 		{
-			var emailMessage = new Microsoft.Exchange.WebServices.Data.EmailMessage(_exchangeService);
+			var emailMessage = new EmailMessage(_exchangeService);
 			return emailMessage;
 		}
 
@@ -65,15 +65,15 @@ namespace Dapplo.Exchange
 		/// </summary>
 		/// <param name="token">CancellationToken</param>
 		/// <returns>Task</returns>
-		public async Task InitializeAsync(CancellationToken token = default(CancellationToken))
+		public async System.Threading.Tasks.Task InitializeAsync(CancellationToken token = default(CancellationToken))
 		{
-			await Task.Run(() =>
+			await System.Threading.Tasks.Task.Run(() =>
 			{
-				_exchangeService = new Microsoft.Exchange.WebServices.Data.ExchangeService(_exchangeSettings.VersionToUse);
+				_exchangeService = new ExchangeService(_exchangeSettings.VersionToUse);
 
 				// Remove this if things work
 				_exchangeService.TraceEnabled = true;
-				_exchangeService.TraceFlags = Microsoft.Exchange.WebServices.Data.TraceFlags.All;
+				_exchangeService.TraceFlags = TraceFlags.All;
 
 
 				_exchangeService.UseDefaultCredentials = _exchangeSettings.UseDefaultCredentials;
@@ -85,7 +85,7 @@ namespace Dapplo.Exchange
 				if (string.IsNullOrEmpty(_exchangeSettings.ExchangeUrl))
 				{
 					var filter = LdapAccess.CreateFindUserFilter(Environment.UserName);
-					var result = LdapAccess.FindAll(Environment.UserDomainName, filter);
+					var result = LdapAccess.FindAll(filter);
 
 					foreach (var userProperties in result)
 					{
@@ -111,6 +111,27 @@ namespace Dapplo.Exchange
 
 			}, token);
 		}
+
+		/// <summary>
+		/// Retrieve appointment items from the exchange service
+		/// </summary>
+		/// <returns>FindItemsResults with appointment</returns>
+		public async System.Threading.Tasks.Task<FindItemsResults<Appointment>> RetrieveAppointmentsAsync(DateTime startDate, DateTime endDate, int maxItems = 20, CancellationToken token = default(CancellationToken))
+		{
+			return await System.Threading.Tasks.Task.Run(() =>
+			{
+				// Initialize the calendar folder object with only the folder ID. 
+				var calendar = CalendarFolder.Bind(_exchangeService, WellKnownFolderName.Calendar, new PropertySet());
+				// Set the start and end time and number of appointments to retrieve.
+				var calendarView = new CalendarView(startDate, endDate, maxItems);
+
+				// Limit the properties returned to the appointment's subject, start time, and end time.
+				calendarView.PropertySet = new PropertySet(ItemSchema.Subject, AppointmentSchema.Start, AppointmentSchema.End);
+
+				// Retrieve a collection of appointments by using the calendar view.
+				return calendar.FindAppointments(calendarView);
+			}, token);
+        }
 
 		#region Validation
 		/// <summary>

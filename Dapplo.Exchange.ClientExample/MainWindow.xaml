@@ -11,5 +11,6 @@
         <TextBox Name="Subject" Text="Subject"/>
         <TextBox Name="Body" Text="This is the email body"/>
         <Button Content="Send" Click="Button_Click" />
+        <Label Name="Upcoming" />
     </StackPanel>
 </Window>
