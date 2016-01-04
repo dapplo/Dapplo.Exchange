@@ -9,5 +9,5 @@ Currently the functionality is VERY limited:
  * Connect with specified credentials or default credentials
  * Connect with autodiscover-url by connecting to the Domain-controller (LDAP) to retrieve the email for the current user
 * Only a few methods are available:
- * Creating an email object (is quite useless)
  * Retrieve appointments from the calendar
+ * Subscribe to events (uses the StreamingNotifications feature of Exchange, which is quite efficient)
