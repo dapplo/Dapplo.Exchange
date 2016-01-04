@@ -23,10 +23,12 @@
 
 using Microsoft.Exchange.WebServices.Data;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
+using System.Linq;
 
 namespace Dapplo.Exchange
 {
@@ -60,13 +62,44 @@ namespace Dapplo.Exchange
 		}
 
 		/// <summary>
-		/// A simple helper to create an email message for the exchange service
+		/// Use this to get notified of new emails
 		/// </summary>
-		/// <returns>EmailMessage</returns>
-		public EmailMessage CreateEmailMessage()
+		/// <param name="notifyAction">the action to call when</param>
+		/// <param name="pullInterval">the intervall to pull, 30 seconds when nothing is specified</param>
+		/// <param name="wellKnownFolderName">WellKnownFolderName, Inbox if null</param>
+		/// <returns>a disposable, when disposed the pulling is stopped</returns>
+		public IDisposable CreateNewMailNotify(Action<IEnumerable<ItemEvent>> notifyAction, TimeSpan pullInterval = default(TimeSpan), WellKnownFolderName wellKnownFolderName = WellKnownFolderName.Inbox)
 		{
-			var emailMessage = new EmailMessage(Service);
-			return emailMessage;
+			if (pullInterval.TotalMilliseconds == 0)
+			{
+				pullInterval = TimeSpan.FromSeconds(30);
+            }
+			var subscription = Service.SubscribeToPullNotifications(new FolderId[] { new FolderId(wellKnownFolderName) }, 5, null, EventType.NewMail);
+			var timer = new System.Timers.Timer
+			{
+				Interval = pullInterval.TotalMilliseconds,
+				AutoReset = true
+			};
+			timer.Elapsed += (source, elapsedEventArgs) =>
+			{
+				var itemEvents = subscription.GetEvents().ItemEvents;
+				if (itemEvents.Any())
+				{
+					notifyAction(itemEvents);
+				}
+			};
+			timer.Start();
+
+			// Return a disposable which stops the timer and unsubscribes the subscription
+			return Disposable.Create(() =>
+			{
+				if (timer.Enabled)
+				{
+					timer.Stop();
+				}
+				timer.Dispose();
+				subscription.Unsubscribe();
+			});
 		}
 
 		/// <summary>

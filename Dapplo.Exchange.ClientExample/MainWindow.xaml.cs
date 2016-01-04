@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.Exchange.WebServices.Data;
+using System;
 using System.Windows;
+using System.Linq;
 
 namespace Dapplo.Exchange.ClientExample
 {
@@ -9,11 +11,19 @@ namespace Dapplo.Exchange.ClientExample
 	public partial class MainWindow : Window
 	{
 		private Exchange _exchange;
+		private IDisposable _newMailNotifier;
+
         public MainWindow()
 		{
 			InitializeComponent();
 			Loaded += MainWindow_Loaded;
+			Closing += MainWindow_Closing;
         }
+
+		private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+		{
+			_newMailNotifier?.Dispose();
+		}
 
 		private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
 		{
@@ -29,14 +39,15 @@ namespace Dapplo.Exchange.ClientExample
 				}
 				Upcoming.Content = $"Upcoming event: {appointment.Subject}";
             }
+			_newMailNotifier = _exchange.CreateNewMailNotify((itemEvent) => MessageBox.Show("New emails: " + itemEvent.Count()));
 		}
 
 		private void Button_Click(object sender, RoutedEventArgs e)
 		{
-			var email = _exchange.CreateEmailMessage();
+			var email = new EmailMessage(_exchange.Service);
 			email.ToRecipients.Add(To.Text);
 			email.Subject = Subject.Text;
-			email.Body = new Microsoft.Exchange.WebServices.Data.MessageBody(Microsoft.Exchange.WebServices.Data.BodyType.Text, Body.Text);
+			email.Body = new MessageBody(BodyType.Text, Body.Text);
 			email.Send();
 		}
 	}
