@@ -28,7 +28,6 @@ using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
-using System.Linq;
 
 namespace Dapplo.Exchange
 {
@@ -62,43 +61,47 @@ namespace Dapplo.Exchange
 		}
 
 		/// <summary>
-		/// Use this to get notified of new emails
+		/// Use this to get notified of events, this uses StreamingNotifications
 		/// </summary>
-		/// <param name="notifyAction">the action to call when</param>
-		/// <param name="pullInterval">the intervall to pull, 30 seconds when nothing is specified</param>
-		/// <param name="wellKnownFolderName">WellKnownFolderName, Inbox if null</param>
-		/// <returns>a disposable, when disposed the pulling is stopped</returns>
-		public IDisposable CreateNewMailNotify(Action<IEnumerable<ItemEvent>> notifyAction, TimeSpan pullInterval = default(TimeSpan), WellKnownFolderName wellKnownFolderName = WellKnownFolderName.Inbox)
+		/// <param name="notifyAction">the action to call when an event occurs</param>
+		/// <param name="wellKnownFolderName">WellKnownFolderName to look to, Inbox if none is specified</param>
+		/// <param name="eventTypes">params EventType, if nothing specified than EventType.NewMail is taken</param>
+		/// <returns>a disposable, when disposed the connection is closed and cleaned up</returns>
+		public IDisposable CreateEventSubscription(Action<IEnumerable<NotificationEvent>> notifyAction, WellKnownFolderName wellKnownFolderName = WellKnownFolderName.Inbox, params EventType[] eventTypes)
 		{
-			if (pullInterval.TotalMilliseconds == 0)
+			if (eventTypes == null || eventTypes.Length == 0)
 			{
-				pullInterval = TimeSpan.FromSeconds(30);
+				eventTypes = new EventType[] { EventType.NewMail };
             }
-			var subscription = Service.SubscribeToPullNotifications(new FolderId[] { new FolderId(wellKnownFolderName) }, 5, null, EventType.NewMail);
-			var timer = new System.Timers.Timer
-			{
-				Interval = pullInterval.TotalMilliseconds,
-				AutoReset = true
+			var streamingSubscription = Service.SubscribeToStreamingNotifications(new FolderId[] { wellKnownFolderName }, eventTypes);
+
+			var connection = new StreamingSubscriptionConnection(Service, 30);
+			connection.AddSubscription(streamingSubscription);
+			connection.OnNotificationEvent += (sender, notificationEventArgs) => {
+				// Call action
+				notifyAction(notificationEventArgs.Events);
 			};
-			timer.Elapsed += (source, elapsedEventArgs) =>
+			// Handle error??
+			// connection.OnSubscriptionError += (sender, subscriptionErrorEventArgs) => { };
+
+			// As the time to live is maximum 30 minutes, the connection is closed by the server
+			connection.OnDisconnect += (sender, subscriptionErrorEventArgs) =>
 			{
-				var itemEvents = subscription.GetEvents().ItemEvents;
-				if (itemEvents.Any())
+				if (subscriptionErrorEventArgs.Exception == null)
 				{
-					notifyAction(itemEvents);
+					// Connection closed by server, just reconnect
+					connection.Open();
 				}
 			};
-			timer.Start();
 
-			// Return a disposable which stops the timer and unsubscribes the subscription
+			// Start the connection
+			connection.Open();
+
+			// Return a disposable which disposed the connection and unsubscribes the subscription
 			return Disposable.Create(() =>
 			{
-				if (timer.Enabled)
-				{
-					timer.Stop();
-				}
-				timer.Dispose();
-				subscription.Unsubscribe();
+				connection.Dispose();
+				streamingSubscription.Unsubscribe();
 			});
 		}
 

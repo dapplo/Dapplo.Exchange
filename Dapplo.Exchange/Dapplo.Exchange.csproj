@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Disposable.cs" />
     <Compile Include="Exchange.cs" />
     <Compile Include="ExchangeSettings.cs" />
     <Compile Include="IExchangeSettings.cs" />

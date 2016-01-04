@@ -39,7 +39,7 @@ namespace Dapplo.Exchange.ClientExample
 				}
 				Upcoming.Content = $"Upcoming event: {appointment.Subject}";
             }
-			_newMailNotifier = _exchange.CreateNewMailNotify((itemEvent) => MessageBox.Show("New emails: " + itemEvent.Count()));
+			_newMailNotifier = _exchange.CreateEventSubscription((itemEvent) => MessageBox.Show("New emails: " + itemEvent.Count()));
 		}
 
 		private void Button_Click(object sender, RoutedEventArgs e)
