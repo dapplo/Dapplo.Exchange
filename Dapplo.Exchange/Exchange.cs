@@ -90,6 +90,8 @@ namespace Dapplo.Exchange
 				if (subscriptionErrorEventArgs.Exception == null)
 				{
 					// Connection closed by server, just reconnect
+					// See: https://msdn.microsoft.com/en-us/library/office/hh312849.aspx
+					// "This behavior is expected and is not an error condition"
 					connection.Open();
 				}
 			};
