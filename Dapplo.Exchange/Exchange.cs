@@ -35,9 +35,18 @@ namespace Dapplo.Exchange
 	/// </summary>
 	public class Exchange
 	{
-		private ExchangeService _exchangeService;
 		private IExchangeSettings _exchangeSettings;
 		private static bool _allowSelfSignedCertificates = true;
+
+		/// <summary>
+		/// Access the underlying ExchangeService if you want to do something which is not available yet.
+		/// This might be removed as soon as more functionality is available.
+		/// </summary>
+		public ExchangeService Service
+		{
+			get;
+			private set;
+		}
 
 		/// <summary>
 		/// Create an exchange service wrapper with the supplied settings (or null if defaults)
@@ -56,7 +65,7 @@ namespace Dapplo.Exchange
 		/// <returns>EmailMessage</returns>
 		public EmailMessage CreateEmailMessage()
 		{
-			var emailMessage = new EmailMessage(_exchangeService);
+			var emailMessage = new EmailMessage(Service);
 			return emailMessage;
 		}
 
@@ -69,17 +78,17 @@ namespace Dapplo.Exchange
 		{
 			await System.Threading.Tasks.Task.Run(() =>
 			{
-				_exchangeService = new ExchangeService(_exchangeSettings.VersionToUse);
+				Service = new ExchangeService(_exchangeSettings.VersionToUse);
 
 				// Remove this if things work
-				_exchangeService.TraceEnabled = true;
-				_exchangeService.TraceFlags = TraceFlags.All;
+				Service.TraceEnabled = true;
+				Service.TraceFlags = TraceFlags.All;
 
 
-				_exchangeService.UseDefaultCredentials = _exchangeSettings.UseDefaultCredentials;
+				Service.UseDefaultCredentials = _exchangeSettings.UseDefaultCredentials;
 				if (!_exchangeSettings.UseDefaultCredentials)
 				{
-					_exchangeService.Credentials = new NetworkCredential(_exchangeSettings.Username, _exchangeSettings.Password);
+					Service.Credentials = new NetworkCredential(_exchangeSettings.Username, _exchangeSettings.Password);
                 }
 
 				if (string.IsNullOrEmpty(_exchangeSettings.ExchangeUrl))
@@ -93,11 +102,11 @@ namespace Dapplo.Exchange
 						{
 							if (_exchangeSettings.AllowRedirectUrl)
 							{
-								_exchangeService.AutodiscoverUrl(userProperties["mail"].ToString(), RedirectionUrlValidationCallback);
+								Service.AutodiscoverUrl(userProperties["mail"].ToString(), RedirectionUrlValidationCallback);
 							}
 							else
 							{
-								_exchangeService.AutodiscoverUrl(userProperties["mail"].ToString());
+								Service.AutodiscoverUrl(userProperties["mail"].ToString());
 							}
 							
 							break;
@@ -106,7 +115,7 @@ namespace Dapplo.Exchange
 				}
 				else
 				{
-					_exchangeService.Url = new Uri(_exchangeSettings.ExchangeUrl);
+					Service.Url = new Uri(_exchangeSettings.ExchangeUrl);
                 }
 
 			}, token);
@@ -121,7 +130,7 @@ namespace Dapplo.Exchange
 			return await System.Threading.Tasks.Task.Run(() =>
 			{
 				// Initialize the calendar folder object with only the folder ID. 
-				var calendar = CalendarFolder.Bind(_exchangeService, WellKnownFolderName.Calendar, new PropertySet());
+				var calendar = CalendarFolder.Bind(Service, WellKnownFolderName.Calendar, new PropertySet());
 				// Set the start and end time and number of appointments to retrieve.
 				var calendarView = new CalendarView(startDate, endDate, maxItems);
 
