@@ -127,7 +127,7 @@ namespace Dapplo.Exchange
 
 				if (string.IsNullOrEmpty(_exchangeSettings.ExchangeUrl))
 				{
-					var result = ActiveDirectory.ActiveDirectory.FindAll(Query.UsernameFilter(Environment.UserName));
+					var result = Query.UsernameFilter(Environment.UserName).FindAll();
 
 					foreach (var userProperties in result)
 					{

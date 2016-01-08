@@ -8,9 +8,7 @@ assembly_info:
   file: '**\AssemblyInfo.*'
   assembly_version: '{version}'
   assembly_file_version: '{version}'
-  assembly_informational_version: '{version}-$(GIT_HASH)'
-install:
-  - ps: $env:GIT_HASH = $env:APPVEYOR_REPO_COMMIT.Substring(0, 10)
+  assembly_informational_version: '{version}'
 before_build:
   - nuget restore
 build:

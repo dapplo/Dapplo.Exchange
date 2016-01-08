@@ -14,7 +14,7 @@
 		<copyright>Copyright © Dapplo 2016</copyright>
 		<tags>Exchange</tags>
 		<dependencies>
-			<dependency id="Dapplo.ActiveDirectory" version="0.1.4" />
+			<dependency id="Dapplo.ActiveDirectory" version="0.1.7" />
 		</dependencies>
     </metadata>
 </package>
