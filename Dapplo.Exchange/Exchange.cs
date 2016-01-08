@@ -21,6 +21,7 @@
 	along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+using Dapplo.ActiveDirectory;
 using Microsoft.Exchange.WebServices.Data;
 using System;
 using System.Collections.Generic;
@@ -118,11 +119,6 @@ namespace Dapplo.Exchange
 			{
 				Service = new ExchangeService(_exchangeSettings.VersionToUse);
 
-				// Remove this if things work
-				Service.TraceEnabled = true;
-				Service.TraceFlags = TraceFlags.All;
-
-
 				Service.UseDefaultCredentials = _exchangeSettings.UseDefaultCredentials;
 				if (!_exchangeSettings.UseDefaultCredentials)
 				{
@@ -131,8 +127,7 @@ namespace Dapplo.Exchange
 
 				if (string.IsNullOrEmpty(_exchangeSettings.ExchangeUrl))
 				{
-					var filter = LdapAccess.CreateFindUserFilter(Environment.UserName);
-					var result = LdapAccess.FindAll(filter);
+					var result = ActiveDirectory.ActiveDirectory.FindAll(Query.UsernameFilter(Environment.UserName));
 
 					foreach (var userProperties in result)
 					{
