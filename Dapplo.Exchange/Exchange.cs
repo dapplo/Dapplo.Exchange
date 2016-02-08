@@ -18,13 +18,15 @@
 	GNU General Public License for more details.
 
 	You should have received a copy of the GNU General Public License
-	along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+	along with Dapplo.Exchange.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 using Dapplo.ActiveDirectory;
+using Dapplo.Exchange.Entity;
 using Microsoft.Exchange.WebServices.Data;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
@@ -127,22 +129,16 @@ namespace Dapplo.Exchange
 
 				if (string.IsNullOrEmpty(_exchangeSettings.ExchangeUrl))
 				{
-					var result = Query.UsernameFilter(Environment.UserName).FindAll();
-
-					foreach (var userProperties in result)
+					var emailAddress = Query.UsernameFilter(Environment.UserName).Execute<AdUser>().FirstOrDefault()?.Email;
+					if (emailAddress != null)
 					{
-						if (userProperties.ContainsKey("mail"))
+						if (_exchangeSettings.AllowRedirectUrl)
 						{
-							if (_exchangeSettings.AllowRedirectUrl)
-							{
-								Service.AutodiscoverUrl(userProperties["mail"].ToString(), RedirectionUrlValidationCallback);
-							}
-							else
-							{
-								Service.AutodiscoverUrl(userProperties["mail"].ToString());
-							}
-							
-							break;
+							Service.AutodiscoverUrl(emailAddress, RedirectionUrlValidationCallback);
+						}
+						else
+						{
+							Service.AutodiscoverUrl(emailAddress);
 						}
 					}
 				}

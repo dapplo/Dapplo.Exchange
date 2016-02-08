@@ -21,34 +21,13 @@
 	along with Dapplo.Exchange.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using System;
+using Dapplo.ActiveDirectory;
 
-namespace Dapplo.Exchange
+namespace Dapplo.Exchange.Entity
 {
-	/// <summary>
-	/// A simple wrapper which allows us to return an action which is called when dispose is called.
-	/// </summary>
-	public class Disposable
+	class AdUser
 	{
-		public static IDisposable Create(Action action)
-		{
-			return new DisposableStruct(action);
-		}
-
-		private struct DisposableStruct : IDisposable
-		{
-			private readonly Action _dispose;
-			public DisposableStruct(Action dispose)
-			{
-				_dispose = dispose;
-			}
-			public void Dispose()
-			{
-				if (_dispose != null)
-				{
-					_dispose();
-				}
-			}
-		}
+		[AdProperty(UserProperties.EmailAddress)]
+		public string Email { get; set; }
 	}
 }
