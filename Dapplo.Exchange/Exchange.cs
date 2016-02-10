@@ -23,6 +23,7 @@
 
 using Dapplo.ActiveDirectory;
 using Dapplo.Exchange.Entity;
+using Dapplo.LogFacade;
 using Microsoft.Exchange.WebServices.Data;
 using System;
 using System.Collections.Generic;
@@ -39,6 +40,7 @@ namespace Dapplo.Exchange
 	/// </summary>
 	public class Exchange
 	{
+		private static readonly LogSource Log = new LogSource();
 		private IExchangeSettings _exchangeSettings;
 		private static bool _allowSelfSignedCertificates = true;
 
@@ -124,14 +126,17 @@ namespace Dapplo.Exchange
 				Service.UseDefaultCredentials = _exchangeSettings.UseDefaultCredentials;
 				if (!_exchangeSettings.UseDefaultCredentials)
 				{
+					Log.Debug().WriteLine("Using credentials from the settings: {0}", _exchangeSettings.Username);
 					Service.Credentials = new NetworkCredential(_exchangeSettings.Username, _exchangeSettings.Password);
                 }
 
 				if (string.IsNullOrEmpty(_exchangeSettings.ExchangeUrl))
 				{
+					Log.Debug().WriteLine("Trying to resolve the email-address for the current user: {0}", Environment.UserName);
 					var emailAddress = Query.UsernameFilter(Environment.UserName).Execute<AdUser>().FirstOrDefault()?.Email;
 					if (emailAddress != null)
 					{
+						Log.Debug().WriteLine("Found Email-address for the current user: {0}, using auto-discovery.", emailAddress);
 						if (_exchangeSettings.AllowRedirectUrl)
 						{
 							Service.AutodiscoverUrl(emailAddress, RedirectionUrlValidationCallback);
@@ -140,10 +145,12 @@ namespace Dapplo.Exchange
 						{
 							Service.AutodiscoverUrl(emailAddress);
 						}
+						Log.Debug().WriteLine("Found Url {0}", Service.Url);
 					}
 				}
 				else
 				{
+					Log.Debug().WriteLine("Using exchange Url from the settings: {0}", _exchangeSettings.ExchangeUrl);
 					Service.Url = new Uri(_exchangeSettings.ExchangeUrl);
                 }
 
@@ -154,22 +161,56 @@ namespace Dapplo.Exchange
 		/// Retrieve appointment items from the exchange service
 		/// </summary>
 		/// <returns>FindItemsResults with appointment</returns>
-		public async System.Threading.Tasks.Task<FindItemsResults<Appointment>> RetrieveAppointmentsAsync(DateTime startDate, DateTime endDate, int maxItems = 20, CancellationToken token = default(CancellationToken))
+		public async System.Threading.Tasks.Task<IEnumerable<Appointment>> RetrieveAppointmentsAsync(DateTime startDate, DateTime endDate, int maxItems = 20, CancellationToken token = default(CancellationToken))
 		{
 			return await System.Threading.Tasks.Task.Run(() =>
 			{
+				// Limit the properties returned to the appointment's subject, start time, and end time.
+				var propertySet = new PropertySet(ItemSchema.Subject, AppointmentSchema.Start, AppointmentSchema.End);
 				// Initialize the calendar folder object with only the folder ID. 
-				var calendar = CalendarFolder.Bind(Service, WellKnownFolderName.Calendar, new PropertySet());
+				var calendar = CalendarFolder.Bind(Service, WellKnownFolderName.Calendar, propertySet);
 				// Set the start and end time and number of appointments to retrieve.
 				var calendarView = new CalendarView(startDate, endDate, maxItems);
-
-				// Limit the properties returned to the appointment's subject, start time, and end time.
-				calendarView.PropertySet = new PropertySet(ItemSchema.Subject, AppointmentSchema.Start, AppointmentSchema.End);
-
 				// Retrieve a collection of appointments by using the calendar view.
-				return calendar.FindAppointments(calendarView);
+				return calendar.FindAppointments(calendarView).Select(x => x);
 			}, token);
         }
+
+		/// <summary>
+		/// Retrieve contact items from the exchange service
+		/// </summary>
+		/// <returns>FindItemsResults with Item</returns>
+		public async System.Threading.Tasks.Task<IEnumerable<Contact>> RetrieveContactsAsync(CancellationToken token = default(CancellationToken))
+		{
+			return await System.Threading.Tasks.Task.Run(() =>
+			{
+				// Limit the properties returned
+				// Initialize the calendar folder object with only the folder ID. 
+				var contactsFolder = ContactsFolder.Bind(Service, WellKnownFolderName.Contacts);
+				// Set the amount of contacts to return
+				var itemView = new ItemView(100);
+
+				// For later
+				var propertySet = new PropertySet(ItemSchema.Attachments, ContactSchema.GivenName, ContactSchema.Surname, ContactSchema.EmailAddresses);
+
+				// Retrieve a collection of items by using the itemview.
+				var itemsList = contactsFolder.FindItems(itemView);
+
+				return itemsList.Select(item => {
+					Contact contact = Contact.Bind(Service, item.Id, propertySet);
+					foreach (FileAttachment attachment in contact.Attachments)
+					{
+						if (attachment.IsContactPhoto)
+						{
+							Log.Verbose().WriteLine("Loading contact photo attachment for {1}, {0}", contact.GivenName, contact.Surname);
+							// Load the attachment to access the content.
+							attachment.Load();
+						}
+					}
+					return contact;
+				});
+			}, token);
+		}
 
 		#region Validation
 		/// <summary>
