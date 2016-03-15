@@ -133,7 +133,7 @@ namespace Dapplo.Exchange
 				if (string.IsNullOrEmpty(_exchangeSettings.ExchangeUrl))
 				{
 					Log.Debug().WriteLine("Trying to resolve the email-address for the current user: {0}", Environment.UserName);
-					var emailAddress = Query.UsernameFilter(Environment.UserName).Execute<AdUser>().FirstOrDefault()?.Email;
+					var emailAddress = Query.ForUser(Environment.UserName).Execute<AdUser>().FirstOrDefault()?.Email;
 					if (emailAddress != null)
 					{
 						Log.Debug().WriteLine("Found Email-address for the current user: {0}, using auto-discovery.", emailAddress);
@@ -196,7 +196,7 @@ namespace Dapplo.Exchange
 				// Retrieve a collection of items by using the itemview.
 				var itemsList = contactsFolder.FindItems(itemView);
 
-				return itemsList.Select(item => {
+				return itemsList.Where(item => item is Contact).Select(item => {
 					Contact contact = Contact.Bind(Service, item.Id, propertySet);
 					foreach (FileAttachment attachment in contact.Attachments)
 					{
