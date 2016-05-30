@@ -59,10 +59,15 @@ namespace Dapplo.Exchange.ClientExample
 
 			_newMailNotifier = _exchange.CreateEventSubscription((itemEvent) => MessageBox.Show("New emails: " + itemEvent.Count()));
 
+			var meetingRequests = await _exchange.RetrieveMeetingRequestsAsync(300);
+			foreach (var meetingRequest in meetingRequests)
+			{
+				Log.Debug().WriteLine("Meeting request {0}", meetingRequest.Subject);
+			}
 			// Show the upcoming event
 			var appointments = await _exchange.RetrieveAppointmentsAsync(DateTime.Now, DateTime.Now.AddDays(1), 5);
 
-			var first = appointments.Where(x => x.Start < DateTime.Now).OrderBy(x => x.Start).FirstOrDefault();
+			var first = appointments.Where(x => x.MyResponseType != MeetingResponseType.Accept).OrderBy(x => x.Start).FirstOrDefault();
 			if (first != null)
 			{
 				Upcoming.Content = $"Upcoming event: {first.Subject}";
@@ -76,16 +81,6 @@ namespace Dapplo.Exchange.ClientExample
 				{
 					Log.Info().WriteLine("No photo for {1}, {0}", contact.GivenName, contact.Surname);
 					continue;
-				}
-				var filename = $@"c:\localdata\{contact.GivenName}_{contact.Surname}{photoAttachment.Name}";
-				if (!File.Exists(filename))
-				{
-					Log.Info().WriteLine("Writing photo for {1}, {0} to: {2}", contact.GivenName, contact.Surname, filename);
-					File.WriteAllBytes(filename, photoAttachment.Content);
-				}
-				else
-				{
-					Log.Info().WriteLine("Already write photo for {1}, {0}", contact.GivenName, contact.Surname);
 				}
 			}
 		}

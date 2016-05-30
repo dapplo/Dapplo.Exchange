@@ -22,12 +22,13 @@
  */
 
 using Dapplo.ActiveDirectory;
+using Dapplo.ActiveDirectory.Enums;
 
 namespace Dapplo.Exchange.Entity
 {
-	class AdUser
+	public interface AdUser : IAdObject
 	{
 		[AdProperty(UserProperties.EmailAddress)]
-		public string Email { get; set; }
+		string Email { get; set; }
 	}
 }

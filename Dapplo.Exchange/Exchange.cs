@@ -22,6 +22,7 @@
  */
 
 using Dapplo.ActiveDirectory;
+using Dapplo.ActiveDirectory.Entities;
 using Dapplo.Exchange.Entity;
 using Dapplo.LogFacade;
 using Microsoft.Exchange.WebServices.Data;
@@ -208,6 +209,56 @@ namespace Dapplo.Exchange
 						}
 					}
 					return contact;
+				});
+			}, token);
+		}
+
+		/// <summary>
+		/// Retrieve items from the exchange service Inbox
+		/// </summary>
+		/// <returns>FindItemsResults with Items</returns>
+		public async System.Threading.Tasks.Task<IEnumerable<Item>> RetrieveMailsAsync(int maxItems = 20, CancellationToken token = default(CancellationToken))
+		{
+			return await System.Threading.Tasks.Task.Run(() =>
+			{
+				// Limit the properties returned
+				// Initialize the calendar folder object with only the folder ID. 
+				var mailFolder = Folder.Bind(Service, WellKnownFolderName.Inbox);
+				// Set the amount of contacts to return
+				var itemView = new ItemView(maxItems);
+				// Retrieve a collection of items by using the itemview.
+				var itemsList = mailFolder.FindItems(itemView);
+
+				return itemsList.Where(item => item is Item);
+			}, token);
+		}
+
+
+		/// <summary>
+		/// Retrieve MeetingRequest from the exchange service Inbox
+		/// </summary>
+		/// <returns>MeetingRequests</returns>
+		public async System.Threading.Tasks.Task<IEnumerable<MeetingRequest>> RetrieveMeetingRequestsAsync(int maxItems = 20, CancellationToken token = default(CancellationToken))
+		{
+			return await System.Threading.Tasks.Task.Run(() =>
+			{
+				// Limit the properties returned
+				// Initialize the calendar folder object with only the folder ID. 
+				var mailFolder = Folder.Bind(Service, WellKnownFolderName.Inbox);
+				// Set the amount of contacts to return
+				var itemView = new ItemView(maxItems);
+
+				// Retrieve a collection of items by using the itemview.
+				var itemsList = mailFolder.FindItems(itemView);
+
+				// What properties we want to know
+				var propertySet = new PropertySet(MeetingRequestSchema.MyResponseType, MeetingRequestSchema.Location, MeetingRequestSchema.ResponseType);
+
+				return itemsList.Where(item => item is MeetingRequest).Select(x =>
+				{
+					//MeetingRequest meetingRequest = MeetingRequest.Bind(Service, x.Id, propertySet);
+
+					return x as MeetingRequest;
 				});
 			}, token);
 		}
