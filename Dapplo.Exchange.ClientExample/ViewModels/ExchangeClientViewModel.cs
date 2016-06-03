@@ -7,5 +7,9 @@ namespace Dapplo.Exchange.ClientExample.ViewModels
 	[Export(typeof(IShell))]
 	public class ExchangeClientViewModel : Conductor<IScreen>.Collection.OneActive, IShell
 	{
+		public ExchangeClientViewModel()
+		{
+			DisplayName = "Exchange client example";
+		}
 	}
 }

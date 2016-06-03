@@ -2,7 +2,6 @@
 using Dapplo.Addons;
 using Dapplo.CaliburnMicro;
 using Dapplo.LogFacade;
-using Dapplo.Utils;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
@@ -23,7 +22,7 @@ namespace Dapplo.Exchange.ClientExample.Models
 		public async Task StartAsync(CancellationToken cancellationToken = default(CancellationToken))
 		{
 			_exchange = new Exchange();
-			await _exchange.InitializeAsync();
+			await _exchange.InitializeAsync().ConfigureAwait(false);
 
 			_eventSubscription = _exchange.CreateEventSubscription((notificationEvents) =>
 			{
@@ -63,10 +62,10 @@ namespace Dapplo.Exchange.ClientExample.Models
 		}
 
 
-		public Task ShutdownAsync(CancellationToken token = default(CancellationToken))
+		public async Task ShutdownAsync(CancellationToken token = default(CancellationToken))
 		{
 			_eventSubscription?.Dispose();
-			return Task.FromResult(true);
+			await Task.Yield();
 		}
 
 		/// <summary>

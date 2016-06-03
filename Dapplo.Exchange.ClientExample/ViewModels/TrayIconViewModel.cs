@@ -1,11 +1,8 @@
 ﻿using Caliburn.Micro;
-using Dapplo.Addons;
 using Dapplo.CaliburnMicro.NotifyIconWpf;
 using Dapplo.Exchange.ClientExample.Models;
 using Dapplo.LogFacade;
 using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace Dapplo.Exchange.ClientExample.ViewModels
@@ -20,10 +17,6 @@ namespace Dapplo.Exchange.ClientExample.ViewModels
 
 		[Import]
 		private IEventAggregator EventAggregator { get; set; }
-
-		// TODO: Remove "hack" for the shutdown/exit
-		[Import]
-		private IBootstrapper Bootstrapper { get; set; }
 
 		[Import]
 		public ITrayIconManager TrayIconManager { get; set; }
@@ -44,12 +37,9 @@ namespace Dapplo.Exchange.ClientExample.ViewModels
 			EventAggregator.Subscribe(this);
 		}
 
-		public async Task Exit()
+		public void Exit()
 		{
 			Log.Debug().WriteLine("Exit");
-
-			// TODO: Remove "hack" for the shutdown/exit
-			await Bootstrapper.StopAsync(CancellationToken.None);
 			Application.Current.Shutdown();
 		}
 	}
