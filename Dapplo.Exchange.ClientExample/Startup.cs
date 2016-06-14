@@ -20,10 +20,12 @@ namespace Dapplo.Exchange.ClientExample
 		{
 #if DEBUG
 			// Initialize a debug logger for Dapplo packages
-			LogSettings.Logger = new DebugLogger { Level = LogLevel.Verbose };
+			LogSettings.RegisterDefaultLogger<DebugLogger>(LogLevels.Verbose);
 #endif
-			var application = new Dapplication("Dapplo.Exchange.ExampleClient", "05ffc82c-f7cd-45d3-831d-867660a231ff");
-			application.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+			var application = new Dapplication("Dapplo.Exchange.ExampleClient", "05ffc82c-f7cd-45d3-831d-867660a231ff")
+			{
+				ShutdownMode = ShutdownMode.OnExplicitShutdown
+			};
 			application.Add(@".", "Dapplo.CaliburnMicro*.dll");
 			application.Add(typeof(Startup).Assembly);
 			application.Run();

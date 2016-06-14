@@ -31,20 +31,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Dapplo.ActiveDirectory, Version=0.1.38.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Dapplo.ActiveDirectory.0.1.38\lib\net452\Dapplo.ActiveDirectory.dll</HintPath>
+    <Reference Include="Dapplo.ActiveDirectory, Version=0.1.41.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dapplo.ActiveDirectory.0.1.41\lib\net452\Dapplo.ActiveDirectory.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Dapplo.InterfaceImpl, Version=0.1.16.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Dapplo.InterfaceImpl.0.1.16\lib\net452\Dapplo.InterfaceImpl.dll</HintPath>
+    <Reference Include="Dapplo.InterfaceImpl, Version=0.1.24.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dapplo.InterfaceImpl.0.1.24\lib\net452\Dapplo.InterfaceImpl.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Dapplo.LogFacade, Version=0.2.45.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Dapplo.LogFacade.0.2.45\lib\net45\Dapplo.LogFacade.dll</HintPath>
+    <Reference Include="Dapplo.LogFacade, Version=0.3.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dapplo.LogFacade.0.3.2\lib\net45\Dapplo.LogFacade.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Dapplo.Utils, Version=0.1.33.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Dapplo.Utils.0.1.33\lib\net45\Dapplo.Utils.dll</HintPath>
+    <Reference Include="Dapplo.Utils, Version=0.1.44.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dapplo.Utils.0.1.44\lib\net45\Dapplo.Utils.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Exchange.WebServices, Version=15.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
