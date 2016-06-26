@@ -1,6 +1,6 @@
 ﻿using Dapplo.CaliburnMicro;
-using Dapplo.LogFacade;
-using Dapplo.LogFacade.Loggers;
+using Dapplo.Log.Facade;
+using Dapplo.Log.Facade.Loggers;
 using System;
 using System.Diagnostics;
 using System.Windows;

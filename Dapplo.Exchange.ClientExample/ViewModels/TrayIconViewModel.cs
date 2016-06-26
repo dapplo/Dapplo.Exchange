@@ -1,7 +1,7 @@
 ﻿using Caliburn.Micro;
 using Dapplo.CaliburnMicro.NotifyIconWpf;
 using Dapplo.Exchange.ClientExample.Models;
-using Dapplo.LogFacade;
+using Dapplo.Log.Facade;
 using System.ComponentModel.Composition;
 using System.Windows;
 

@@ -24,7 +24,7 @@
 using Dapplo.ActiveDirectory;
 using Dapplo.ActiveDirectory.Entities;
 using Dapplo.Exchange.Entity;
-using Dapplo.LogFacade;
+using Dapplo.Log.Facade;
 using Microsoft.Exchange.WebServices.Data;
 using System;
 using System.Collections.Generic;

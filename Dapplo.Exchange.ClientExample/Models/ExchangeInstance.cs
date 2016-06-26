@@ -1,7 +1,7 @@
 ﻿using Caliburn.Micro;
 using Dapplo.Addons;
 using Dapplo.CaliburnMicro;
-using Dapplo.LogFacade;
+using Dapplo.Log.Facade;
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
