@@ -1,31 +1,30 @@
-﻿/*
-	Dapplo - building blocks for desktop applications
-	Copyright (C) 2015-2016 Dapplo
+﻿#region Dapplo 2016 - GNU Lesser General Public License
 
-	For more information see: http://dapplo.net/
-	Dapplo repositories are hosted on GitHub: https://github.com/dapplo
+// Dapplo - building blocks for .NET applications
+// Copyright (C) 2016 Dapplo
+// 
+// For more information see: http://dapplo.net/
+// Dapplo repositories are hosted on GitHub: https://github.com/dapplo
+// 
+// This file is part of Dapplo.Exchange
+// 
+// Dapplo.Exchange is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// Dapplo.Exchange is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+// 
+// You should have a copy of the GNU Lesser General Public License
+// along with Dapplo.Exchange. If not, see <http://www.gnu.org/licenses/lgpl.txt>.
 
-	This file is part of Dapplo.Exchange.
+#endregion
 
-	Dapplo.Exchange is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+#region Usings
 
-	Dapplo.Exchange is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with Dapplo.Exchange.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-using Dapplo.ActiveDirectory;
-using Dapplo.ActiveDirectory.Entities;
-using Dapplo.Exchange.Entity;
-using Dapplo.Log.Facade;
-using Microsoft.Exchange.WebServices.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,57 +32,64 @@ using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
+using System.Threading.Tasks;
+using Dapplo.ActiveDirectory;
+using Dapplo.ActiveDirectory.Entities;
+using Dapplo.Exchange.Entity;
+using Dapplo.Log.Facade;
+using Microsoft.Exchange.WebServices.Data;
+using Task = System.Threading.Tasks.Task;
+
+#endregion
 
 namespace Dapplo.Exchange
 {
 	/// <summary>
-	/// This is a wrapper with a lot of convenience for the ExchangeService
+	///     This is a wrapper with a lot of convenience for the ExchangeService
 	/// </summary>
 	public class Exchange
 	{
 		private static readonly LogSource Log = new LogSource();
-		private IExchangeSettings _exchangeSettings;
 		private static bool _allowSelfSignedCertificates = true;
+		private readonly IExchangeSettings _exchangeSettings;
 
 		/// <summary>
-		/// Access the underlying ExchangeService if you want to do something which is not available yet.
-		/// This might be removed as soon as more functionality is available.
-		/// </summary>
-		public ExchangeService Service
-		{
-			get;
-			private set;
-		}
-
-		/// <summary>
-		/// Create an exchange service wrapper with the supplied settings (or null if defaults)
+		///     Create an exchange service wrapper with the supplied settings (or null if defaults)
 		/// </summary>
 		/// <param name="exchangeSettings">null for default</param>
 		public Exchange(IExchangeSettings exchangeSettings = null)
 		{
 			_exchangeSettings = exchangeSettings ?? new ExchangeSettings();
 			_allowSelfSignedCertificates = _exchangeSettings.AllowSelfSignedCertificates;
-            ServicePointManager.ServerCertificateValidationCallback = CertificateValidationCallBack;
+			ServicePointManager.ServerCertificateValidationCallback = CertificateValidationCallBack;
 		}
 
 		/// <summary>
-		/// Use this to get notified of events, this uses StreamingNotifications
+		///     Access the underlying ExchangeService if you want to do something which is not available yet.
+		///     This might be removed as soon as more functionality is available.
+		/// </summary>
+		public ExchangeService Service { get; private set; }
+
+		/// <summary>
+		///     Use this to get notified of events, this uses StreamingNotifications
 		/// </summary>
 		/// <param name="notifyAction">the action to call when an event occurs</param>
 		/// <param name="wellKnownFolderName">WellKnownFolderName to look to, Inbox if none is specified</param>
 		/// <param name="eventTypes">params EventType, if nothing specified than EventType.NewMail is taken</param>
 		/// <returns>a disposable, when disposed the connection is closed and cleaned up</returns>
-		public IDisposable CreateEventSubscription(Action<IEnumerable<NotificationEvent>> notifyAction, WellKnownFolderName wellKnownFolderName = WellKnownFolderName.Inbox, params EventType[] eventTypes)
+		public IDisposable CreateEventSubscription(Action<IEnumerable<NotificationEvent>> notifyAction, WellKnownFolderName wellKnownFolderName = WellKnownFolderName.Inbox,
+			params EventType[] eventTypes)
 		{
 			if (eventTypes == null || eventTypes.Length == 0)
 			{
-				eventTypes = new EventType[] { EventType.NewMail };
-            }
-			var streamingSubscription = Service.SubscribeToStreamingNotifications(new FolderId[] { wellKnownFolderName }, eventTypes);
+				eventTypes = new[] {EventType.NewMail};
+			}
+			var streamingSubscription = Service.SubscribeToStreamingNotifications(new FolderId[] {wellKnownFolderName}, eventTypes);
 
 			var connection = new StreamingSubscriptionConnection(Service, 30);
 			connection.AddSubscription(streamingSubscription);
-			connection.OnNotificationEvent += (sender, notificationEventArgs) => {
+			connection.OnNotificationEvent += (sender, notificationEventArgs) =>
+			{
 				// Call action
 				notifyAction(notificationEventArgs.Events);
 			};
@@ -114,13 +120,13 @@ namespace Dapplo.Exchange
 		}
 
 		/// <summary>
-		/// Initialize the exchange server connection
+		///     Initialize the exchange server connection
 		/// </summary>
 		/// <param name="token">CancellationToken</param>
 		/// <returns>Task</returns>
-		public async System.Threading.Tasks.Task InitializeAsync(CancellationToken token = default(CancellationToken))
+		public async Task InitializeAsync(CancellationToken token = default(CancellationToken))
 		{
-			await System.Threading.Tasks.Task.Run(() =>
+			await Task.Run(() =>
 			{
 				Service = new ExchangeService(_exchangeSettings.VersionToUse);
 
@@ -129,7 +135,7 @@ namespace Dapplo.Exchange
 				{
 					Log.Debug().WriteLine("Using credentials from the settings: {0}", _exchangeSettings.Username);
 					Service.Credentials = new NetworkCredential(_exchangeSettings.Username, _exchangeSettings.Password);
-                }
+				}
 
 				if (string.IsNullOrEmpty(_exchangeSettings.ExchangeUrl))
 				{
@@ -153,18 +159,18 @@ namespace Dapplo.Exchange
 				{
 					Log.Debug().WriteLine("Using exchange Url from the settings: {0}", _exchangeSettings.ExchangeUrl);
 					Service.Url = new Uri(_exchangeSettings.ExchangeUrl);
-                }
-
+				}
 			}, token);
 		}
 
 		/// <summary>
-		/// Retrieve appointment items from the exchange service
+		///     Retrieve appointment items from the exchange service
 		/// </summary>
 		/// <returns>FindItemsResults with appointment</returns>
-		public async System.Threading.Tasks.Task<IEnumerable<Appointment>> RetrieveAppointmentsAsync(DateTime startDate, DateTime endDate, int maxItems = 20, CancellationToken token = default(CancellationToken))
+		public async Task<IEnumerable<Appointment>> RetrieveAppointmentsAsync(DateTime startDate, DateTime endDate, int maxItems = 20,
+			CancellationToken token = default(CancellationToken))
 		{
-			return await System.Threading.Tasks.Task.Run(() =>
+			return await Task.Run(() =>
 			{
 				// Limit the properties returned to the appointment's subject, start time, and end time.
 				var propertySet = new PropertySet(ItemSchema.Subject, AppointmentSchema.Start, AppointmentSchema.End);
@@ -175,15 +181,15 @@ namespace Dapplo.Exchange
 				// Retrieve a collection of appointments by using the calendar view.
 				return calendar.FindAppointments(calendarView).Select(x => x);
 			}, token);
-        }
+		}
 
 		/// <summary>
-		/// Retrieve contact items from the exchange service
+		///     Retrieve contact items from the exchange service
 		/// </summary>
 		/// <returns>FindItemsResults with Item</returns>
-		public async System.Threading.Tasks.Task<IEnumerable<Contact>> RetrieveContactsAsync(CancellationToken token = default(CancellationToken))
+		public async Task<IEnumerable<Contact>> RetrieveContactsAsync(CancellationToken token = default(CancellationToken))
 		{
-			return await System.Threading.Tasks.Task.Run(() =>
+			return await Task.Run(() =>
 			{
 				// Limit the properties returned
 				// Initialize the calendar folder object with only the folder ID. 
@@ -197,8 +203,9 @@ namespace Dapplo.Exchange
 				// Retrieve a collection of items by using the itemview.
 				var itemsList = contactsFolder.FindItems(itemView);
 
-				return itemsList.Where(item => item is Contact).Select(item => {
-					Contact contact = Contact.Bind(Service, item.Id, propertySet);
+				return itemsList.Where(item => item is Contact).Select(item =>
+				{
+					var contact = Contact.Bind(Service, item.Id, propertySet);
 					foreach (FileAttachment attachment in contact.Attachments)
 					{
 						if (attachment.IsContactPhoto)
@@ -214,12 +221,12 @@ namespace Dapplo.Exchange
 		}
 
 		/// <summary>
-		/// Retrieve items from the exchange service Inbox
+		///     Retrieve items from the exchange service Inbox
 		/// </summary>
 		/// <returns>FindItemsResults with Items</returns>
-		public async System.Threading.Tasks.Task<IEnumerable<Item>> RetrieveMailsAsync(int maxItems = 20, CancellationToken token = default(CancellationToken))
+		public async Task<IEnumerable<Item>> RetrieveMailsAsync(int maxItems = 20, CancellationToken token = default(CancellationToken))
 		{
-			return await System.Threading.Tasks.Task.Run(() =>
+			return await Task.Run(() =>
 			{
 				// Limit the properties returned
 				// Initialize the calendar folder object with only the folder ID. 
@@ -235,12 +242,12 @@ namespace Dapplo.Exchange
 
 
 		/// <summary>
-		/// Retrieve MeetingRequest from the exchange service Inbox
+		///     Retrieve MeetingRequest from the exchange service Inbox
 		/// </summary>
 		/// <returns>MeetingRequests</returns>
-		public async System.Threading.Tasks.Task<IEnumerable<MeetingRequest>> RetrieveMeetingRequestsAsync(int maxItems = 20, CancellationToken token = default(CancellationToken))
+		public async Task<IEnumerable<MeetingRequest>> RetrieveMeetingRequestsAsync(int maxItems = 20, CancellationToken token = default(CancellationToken))
 		{
-			return await System.Threading.Tasks.Task.Run(() =>
+			return await Task.Run(() =>
 			{
 				// Limit the properties returned
 				// Initialize the calendar folder object with only the folder ID. 
@@ -252,7 +259,7 @@ namespace Dapplo.Exchange
 				var itemsList = mailFolder.FindItems(itemView);
 
 				// What properties we want to know
-				var propertySet = new PropertySet(MeetingRequestSchema.MyResponseType, MeetingRequestSchema.Location, MeetingRequestSchema.ResponseType);
+				var propertySet = new PropertySet(MeetingRequestSchema.MyResponseType, MeetingRequestSchema.Location, MeetingMessageSchema.ResponseType);
 
 				return itemsList.Where(item => item is MeetingRequest).Select(x =>
 				{
@@ -264,15 +271,16 @@ namespace Dapplo.Exchange
 		}
 
 		#region Validation
+
 		/// <summary>
-		/// This method validates the redirect Url, this is only called when a redirection is used
+		///     This method validates the redirect Url, this is only called when a redirection is used
 		/// </summary>
 		/// <param name="redirectionUrl"></param>
 		/// <returns>true if the redirect url is okay</returns>
 		private static bool RedirectionUrlValidationCallback(string redirectionUrl)
 		{
 			// The default for the validation callback is to reject the URL.
-			bool result = false;
+			var result = false;
 
 			var redirectionUri = new Uri(redirectionUrl);
 
@@ -287,7 +295,7 @@ namespace Dapplo.Exchange
 		}
 
 		/// <summary>
-		/// This is needed for allowing the self-signed certificates
+		///     This is needed for allowing the self-signed certificates
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="certificate"></param>
@@ -307,7 +315,7 @@ namespace Dapplo.Exchange
 			{
 				if (chain != null && chain.ChainStatus != null)
 				{
-					foreach (X509ChainStatus status in chain.ChainStatus)
+					foreach (var status in chain.ChainStatus)
 					{
 						if ((certificate.Subject == certificate.Issuer) && (status.Status == X509ChainStatusFlags.UntrustedRoot))
 						{
@@ -318,14 +326,11 @@ namespace Dapplo.Exchange
 							}
 							return false;
 						}
-						else
+						if (status.Status != X509ChainStatusFlags.NoError)
 						{
-							if (status.Status != X509ChainStatusFlags.NoError)
-							{
-								// If there are any other errors in the certificate chain, the certificate is invalid,
-								// so the method returns false.
-								return false;
-							}
+							// If there are any other errors in the certificate chain, the certificate is invalid,
+							// so the method returns false.
+							return false;
 						}
 					}
 				}
@@ -335,12 +340,10 @@ namespace Dapplo.Exchange
 				// for default Exchange server installations, so return true.
 				return true;
 			}
-			else
-			{
-				// In all other cases, return false.
-				return false;
-			}
+			// In all other cases, return false.
+			return false;
 		}
+
 		#endregion
 	}
 }
