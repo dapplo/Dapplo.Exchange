@@ -26,11 +26,16 @@
 #region Usings
 
 using System.ComponentModel.Composition;
+using System.Windows;
+using System.Windows.Media;
 using Caliburn.Micro;
 using Dapplo.CaliburnMicro;
+using Dapplo.CaliburnMicro.Behaviors;
 using Dapplo.CaliburnMicro.NotifyIconWpf;
+using Dapplo.CaliburnMicro.NotifyIconWpf.ViewModels;
 using Dapplo.Exchange.ClientExample.Models;
 using Dapplo.Log.Facade;
+using MahApps.Metro.IconPacks;
 using Microsoft.Exchange.WebServices.Data;
 
 #endregion
@@ -38,7 +43,7 @@ using Microsoft.Exchange.WebServices.Data;
 namespace Dapplo.Exchange.ClientExample.ViewModels
 {
 	[Export(typeof(ITrayIconViewModel))]
-	public class TrayIconViewModel : Screen, ITrayIconViewModel, IHandle<EmailMessage>
+	public class ExchangeTrayIconViewModel : TrayIconViewModel, IHandle<EmailMessage>
 	{
 		private static readonly LogSource Log = new LogSource();
 
@@ -47,9 +52,6 @@ namespace Dapplo.Exchange.ClientExample.ViewModels
 
 		[Import]
 		private IEventAggregator EventAggregator { get; set; }
-
-		[Import]
-		public ITrayIconManager TrayIconManager { get; set; }
 
 		public void Handle(EmailMessage message)
 		{
@@ -62,8 +64,14 @@ namespace Dapplo.Exchange.ClientExample.ViewModels
 		protected override void OnActivate()
 		{
 			base.OnActivate();
-			var trayIcon = TrayIconManager.GetTrayIconFor(this);
-			trayIcon.Show();
+			IconBehavior.SetIcon(TrayIcon as FrameworkElement, new PackIconMaterial
+			{
+				Kind = PackIconMaterialKind.Email,
+				Background = Brushes.White,
+				Foreground = Brushes.Black,
+			});
+
+			Show();
 			EventAggregator.Subscribe(this);
 		}
 

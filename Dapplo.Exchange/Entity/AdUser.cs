@@ -32,7 +32,7 @@ using Dapplo.ActiveDirectory.Enums;
 
 namespace Dapplo.Exchange.Entity
 {
-	public interface AdUser : IAdObject
+	public interface IAdUser : IAdObject
 	{
 		[AdProperty(UserProperties.EmailAddress)]
 		string Email { get; set; }

@@ -31,6 +31,9 @@ using Microsoft.Exchange.WebServices.Data;
 
 namespace Dapplo.Exchange
 {
+	/// <summary>
+	/// Implementation of the IExchangeSettings, would not be needed if using Dapplo.InterfaceImpl
+	/// </summary>
 	public class ExchangeSettings : IExchangeSettings
 	{
 		public bool AllowSelfSignedCertificates { get; set; } = true;

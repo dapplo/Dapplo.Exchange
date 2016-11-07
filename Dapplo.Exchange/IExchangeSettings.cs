@@ -32,6 +32,9 @@ using Microsoft.Exchange.WebServices.Data;
 
 namespace Dapplo.Exchange
 {
+	/// <summary>
+	/// Various settings for the Exchange communication
+	/// </summary>
 	public interface IExchangeSettings
 	{
 		[DefaultValue(true), Description("Do we allow self-signed certificates")]

@@ -140,7 +140,7 @@ namespace Dapplo.Exchange
 				if (string.IsNullOrEmpty(_exchangeSettings.ExchangeUrl))
 				{
 					Log.Debug().WriteLine("Trying to resolve the email-address for the current user: {0}", Environment.UserName);
-					var emailAddress = Query.ForUser(Environment.UserName).Execute<AdUser>().FirstOrDefault()?.Email;
+					var emailAddress = Query.ForUser(Environment.UserName).Execute<IAdUser>().FirstOrDefault()?.Email;
 					if (emailAddress != null)
 					{
 						Log.Debug().WriteLine("Found Email-address for the current user: {0}, using auto-discovery.", emailAddress);
