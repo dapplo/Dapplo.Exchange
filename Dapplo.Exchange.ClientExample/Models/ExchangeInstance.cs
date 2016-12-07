@@ -31,7 +31,7 @@ using System.Threading;
 using Caliburn.Micro;
 using Dapplo.Addons;
 using Dapplo.CaliburnMicro;
-using Dapplo.Log.Facade;
+using Dapplo.Log;
 using Microsoft.Exchange.WebServices.Data;
 using Task = System.Threading.Tasks.Task;
 
@@ -64,7 +64,7 @@ namespace Dapplo.Exchange.ClientExample.Models
 		public async Task StartAsync(CancellationToken cancellationToken = default(CancellationToken))
 		{
 			_exchange = new Exchange();
-			await _exchange.InitializeAsync().ConfigureAwait(false);
+			await _exchange.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
 			_eventSubscription = _exchange.CreateEventSubscription(notificationEvents =>
 			{

@@ -34,7 +34,7 @@ using Dapplo.CaliburnMicro.Behaviors;
 using Dapplo.CaliburnMicro.NotifyIconWpf;
 using Dapplo.CaliburnMicro.NotifyIconWpf.ViewModels;
 using Dapplo.Exchange.ClientExample.Models;
-using Dapplo.Log.Facade;
+using Dapplo.Log;
 using MahApps.Metro.IconPacks;
 using Microsoft.Exchange.WebServices.Data;
 
@@ -64,13 +64,15 @@ namespace Dapplo.Exchange.ClientExample.ViewModels
 		protected override void OnActivate()
 		{
 			base.OnActivate();
-			IconBehavior.SetIcon(TrayIcon as FrameworkElement, new PackIconMaterial
+
+			// Use Behavior to set the icon
+			var taskbarIcon = TrayIcon as FrameworkElement;
+			taskbarIcon?.SetCurrentValue(FrameworkElementIcon.ValueProperty, new PackIconMaterial
 			{
 				Kind = PackIconMaterialKind.Email,
-				Background = Brushes.White,
-				Foreground = Brushes.Black,
+				Background = Brushes.Transparent,
+				Foreground = Brushes.Black
 			});
-
 			Show();
 			EventAggregator.Subscribe(this);
 		}

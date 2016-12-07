@@ -29,7 +29,7 @@ using System;
 using System.Diagnostics;
 using System.Windows;
 using Dapplo.CaliburnMicro;
-using Dapplo.Log.Facade;
+using Dapplo.Log;
 using Dapplo.Log.Loggers;
 
 #endregion
@@ -39,7 +39,7 @@ namespace Dapplo.Exchange.ClientExample
 	/// <summary>
 	///     This takes care or starting the Application
 	/// </summary>
-	public class Startup
+	public static class Startup
 	{
 		/// <summary>
 		///     Start the application

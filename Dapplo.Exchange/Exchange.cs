@@ -36,7 +36,8 @@ using System.Threading.Tasks;
 using Dapplo.ActiveDirectory;
 using Dapplo.ActiveDirectory.Entities;
 using Dapplo.Exchange.Entity;
-using Dapplo.Log.Facade;
+using Dapplo.Log;
+using Dapplo.Utils;
 using Microsoft.Exchange.WebServices.Data;
 using Task = System.Threading.Tasks.Task;
 
@@ -112,7 +113,7 @@ namespace Dapplo.Exchange
 			connection.Open();
 
 			// Return a disposable which disposed the connection and unsubscribes the subscription
-			return Disposable.Create(() =>
+			return SimpleDisposable.Create(() =>
 			{
 				connection.Dispose();
 				streamingSubscription.Unsubscribe();
@@ -128,9 +129,11 @@ namespace Dapplo.Exchange
 		{
 			await Task.Run(() =>
 			{
-				Service = new ExchangeService(_exchangeSettings.VersionToUse);
+				Service = new ExchangeService(_exchangeSettings.VersionToUse)
+				{
+					UseDefaultCredentials = _exchangeSettings.UseDefaultCredentials
+				};
 
-				Service.UseDefaultCredentials = _exchangeSettings.UseDefaultCredentials;
 				if (!_exchangeSettings.UseDefaultCredentials)
 				{
 					Log.Debug().WriteLine("Using credentials from the settings: {0}", _exchangeSettings.Username);
@@ -141,19 +144,20 @@ namespace Dapplo.Exchange
 				{
 					Log.Debug().WriteLine("Trying to resolve the email-address for the current user: {0}", Environment.UserName);
 					var emailAddress = Query.ForUser(Environment.UserName).Execute<IAdUser>().FirstOrDefault()?.Email;
-					if (emailAddress != null)
+					if (emailAddress == null)
 					{
-						Log.Debug().WriteLine("Found Email-address for the current user: {0}, using auto-discovery.", emailAddress);
-						if (_exchangeSettings.AllowRedirectUrl)
-						{
-							Service.AutodiscoverUrl(emailAddress, RedirectionUrlValidationCallback);
-						}
-						else
-						{
-							Service.AutodiscoverUrl(emailAddress);
-						}
-						Log.Debug().WriteLine("Found Url {0}", Service.Url);
+						return;
 					}
+					Log.Debug().WriteLine("Found Email-address for the current user: {0}, using auto-discovery.", emailAddress);
+					if (_exchangeSettings.AllowRedirectUrl)
+					{
+						Service.AutodiscoverUrl(emailAddress, RedirectionUrlValidationCallback);
+					}
+					else
+					{
+						Service.AutodiscoverUrl(emailAddress);
+					}
+					Log.Debug().WriteLine("Found Url {0}", Service.Url);
 				}
 				else
 				{
@@ -208,12 +212,13 @@ namespace Dapplo.Exchange
 					var contact = Contact.Bind(Service, item.Id, propertySet);
 					foreach (FileAttachment attachment in contact.Attachments)
 					{
-						if (attachment.IsContactPhoto)
+						if (!attachment.IsContactPhoto)
 						{
-							Log.Verbose().WriteLine("Loading contact photo attachment for {1}, {0}", contact.GivenName, contact.Surname);
-							// Load the attachment to access the content.
-							attachment.Load();
+							continue;
 						}
+						Log.Verbose().WriteLine("Loading contact photo attachment for {1}, {0}", contact.GivenName, contact.Surname);
+						// Load the attachment to access the content.
+						attachment.Load();
 					}
 					return contact;
 				});
@@ -236,7 +241,7 @@ namespace Dapplo.Exchange
 				// Retrieve a collection of items by using the itemview.
 				var itemsList = mailFolder.FindItems(itemView);
 
-				return itemsList.Where(item => item is Item);
+				return itemsList.OfType<Item>();
 			}, token);
 		}
 
@@ -259,14 +264,9 @@ namespace Dapplo.Exchange
 				var itemsList = mailFolder.FindItems(itemView);
 
 				// What properties we want to know
-				var propertySet = new PropertySet(MeetingRequestSchema.MyResponseType, MeetingRequestSchema.Location, MeetingMessageSchema.ResponseType);
+				//var propertySet = new PropertySet(MeetingRequestSchema.MyResponseType, MeetingRequestSchema.Location, MeetingMessageSchema.ResponseType);
 
-				return itemsList.Where(item => item is MeetingRequest).Select(x =>
-				{
-					//MeetingRequest meetingRequest = MeetingRequest.Bind(Service, x.Id, propertySet);
-
-					return x as MeetingRequest;
-				});
+				return itemsList.OfType<MeetingRequest>();
 			}, token);
 		}
 
@@ -311,37 +311,38 @@ namespace Dapplo.Exchange
 			}
 
 			// If there are errors in the certificate chain, look at each error to determine the cause.
-			if ((sslPolicyErrors & SslPolicyErrors.RemoteCertificateChainErrors) != 0)
+			if ((sslPolicyErrors & SslPolicyErrors.RemoteCertificateChainErrors) == 0)
 			{
-				if (chain != null && chain.ChainStatus != null)
-				{
-					foreach (var status in chain.ChainStatus)
-					{
-						if ((certificate.Subject == certificate.Issuer) && (status.Status == X509ChainStatusFlags.UntrustedRoot))
-						{
-							if (_allowSelfSignedCertificates)
-							{
-								// Self-signed certificates with an untrusted root are valid. 
-								continue;
-							}
-							return false;
-						}
-						if (status.Status != X509ChainStatusFlags.NoError)
-						{
-							// If there are any other errors in the certificate chain, the certificate is invalid,
-							// so the method returns false.
-							return false;
-						}
-					}
-				}
-
-				// When processing reaches this line, the only errors in the certificate chain are 
-				// untrusted root errors for self-signed certificates. These certificates are valid
-				// for default Exchange server installations, so return true.
+				// In all other cases, return false.
+				return false;
+			}
+			if (chain?.ChainStatus == null)
+			{
 				return true;
 			}
-			// In all other cases, return false.
-			return false;
+			foreach (var status in chain.ChainStatus)
+			{
+				if ((certificate.Subject == certificate.Issuer) && (status.Status == X509ChainStatusFlags.UntrustedRoot))
+				{
+					if (_allowSelfSignedCertificates)
+					{
+						// Self-signed certificates with an untrusted root are valid. 
+						continue;
+					}
+					return false;
+				}
+				if (status.Status != X509ChainStatusFlags.NoError)
+				{
+					// If there are any other errors in the certificate chain, the certificate is invalid,
+					// so the method returns false.
+					return false;
+				}
+			}
+
+			// When processing reaches this line, the only errors in the certificate chain are 
+			// untrusted root errors for self-signed certificates. These certificates are valid
+			// for default Exchange server installations, so return true.
+			return true;
 		}
 
 		#endregion
