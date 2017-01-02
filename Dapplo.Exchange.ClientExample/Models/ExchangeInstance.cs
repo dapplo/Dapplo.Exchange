@@ -40,7 +40,7 @@ using Task = System.Threading.Tasks.Task;
 namespace Dapplo.Exchange.ClientExample.Models
 {
 	[StartupAction(StartupOrder = (int) CaliburnStartOrder.TrayIcons + 10), ShutdownAction]
-	public class ExchangeInstance : IStartupAction, IShutdownAction
+	public class ExchangeInstance : IAsyncStartupAction, IShutdownAction
 	{
 		private static readonly LogSource Log = new LogSource();
 		private IDisposable _eventSubscription;
@@ -55,10 +55,9 @@ namespace Dapplo.Exchange.ClientExample.Models
 		public Action<EmailMessage> NewEmailAction { get; set; }
 
 
-		public async Task ShutdownAsync(CancellationToken token = default(CancellationToken))
+		public void Shutdown()
 		{
 			_eventSubscription?.Dispose();
-			await Task.Yield();
 		}
 
 		public async Task StartAsync(CancellationToken cancellationToken = default(CancellationToken))
