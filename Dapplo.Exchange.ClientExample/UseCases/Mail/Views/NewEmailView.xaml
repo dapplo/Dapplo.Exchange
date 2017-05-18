@@ -1,0 +1,39 @@
+﻿<core:NotificationDisplayPart x:Class="Dapplo.Exchange.ClientExample.UseCases.Mail.Views.NewEmailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Dapplo.Exchange.ClientExample.UseCases.Mail.ViewModels"
+             xmlns:core="clr-namespace:ToastNotifications.Core;assembly=ToastNotifications"
+             mc:Ignorable="d"
+             Background="{DynamicResource AccentColorBrush}" 
+             d:DataContext="{d:DesignInstance local:NewEmailViewModel,IsDesignTimeCreatable=True}"
+             d:DesignHeight="200">
+    <StackPanel>
+        <DockPanel LastChildFill="True" Background="Black">
+            <Button Name="Close" Content="X" Height="20" DockPanel.Dock="Right"/>
+            <Label Content="A new email has arrived" Foreground="White" FontWeight="Bold"/>
+        </DockPanel>
+        <Label Content="{Binding Email.Subject}"/>
+        <ListView ItemsSource="{Binding Images}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderThickness="1" BorderBrush="Black">
+                        <Image Source="{Binding ImageData}" RenderTransformOrigin=".5,.5">
+                            <Image.LayoutTransform>
+                                <RotateTransform Angle="{Binding Rotation}"/>
+                            </Image.LayoutTransform>
+                        </Image>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" Height="100"/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+        </ListView>
+        <Button Name="Delete" Content="Delete email"/>
+     </StackPanel>
+</core:NotificationDisplayPart>
+

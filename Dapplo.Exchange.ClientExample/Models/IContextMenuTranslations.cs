@@ -32,10 +32,22 @@ using Dapplo.Language;
 
 namespace Dapplo.Exchange.ClientExample.Models
 {
-	[Language("ContextMenu")]
-	public interface IContextMenuTranslations : ILanguage, INotifyPropertyChanged
-	{
-		[DefaultValue("Exit")]
-		string Exit { get; }
-	}
+    /// <summary>
+    /// Translations for the context menu
+    /// </summary>
+    [Language("ContextMenu")]
+    public interface IContextMenuTranslations : ILanguage, INotifyPropertyChanged
+    {
+        /// <summary>
+        /// Used for the exit menu item
+        /// </summary>
+        [DefaultValue("Exit")]
+        string Exit { get; }
+
+        /// <summary>
+        /// Used for the menu item title
+        /// </summary>
+        [DefaultValue("Email Client")]
+        string Title { get; }
+    }
 }

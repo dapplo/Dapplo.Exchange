@@ -31,6 +31,9 @@ using Dapplo.Ini;
 
 namespace Dapplo.Exchange.ClientExample.Models
 {
+	/// <summary>
+	/// Container for the exchange settings
+	/// </summary>
 	[IniSection("Exchange")]
 	public interface IExchangeConfig : IExchangeSettings
 	{

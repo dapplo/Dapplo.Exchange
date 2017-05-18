@@ -28,35 +28,35 @@
 using System;
 using System.Diagnostics;
 using System.Windows;
-using Dapplo.CaliburnMicro;
 using Dapplo.Log;
 using Dapplo.Log.Loggers;
+using Dapplo.CaliburnMicro.Dapp;
 
 #endregion
 
 namespace Dapplo.Exchange.ClientExample
 {
-	/// <summary>
-	///     This takes care or starting the Application
-	/// </summary>
-	public static class Startup
-	{
-		/// <summary>
-		///     Start the application
-		/// </summary>
-		[STAThread, DebuggerNonUserCode]
-		public static void Main()
-		{
+    /// <summary>
+    ///     This takes care or starting the Application
+    /// </summary>
+    public static class Startup
+    {
+        /// <summary>
+        ///     Start the application
+        /// </summary>
+        [STAThread, DebuggerNonUserCode]
+        public static void Main()
+        {
 #if DEBUG
-			// Initialize a debug logger for Dapplo packages
-			LogSettings.RegisterDefaultLogger<DebugLogger>(LogLevels.Verbose);
+            // Initialize a debug logger for Dapplo packages
+            LogSettings.RegisterDefaultLogger<DebugLogger>(LogLevels.Verbose);
 #endif
-			var application = new Dapplication("Dapplo.Exchange.ExampleClient", "05ffc82c-f7cd-45d3-831d-867660a231ff")
-			{
-				ShutdownMode = ShutdownMode.OnExplicitShutdown
-			};
-			application.Bootstrapper.FindAndLoadAssemblies("Dapplo.CaliburnMicro*");
-			application.Run();
-		}
-	}
+            var application = new Dapplication("Dapplo.Exchange.ExampleClient", "05ffc82c-f7cd-45d3-831d-867660a231ff")
+            {
+                ShutdownMode = ShutdownMode.OnExplicitShutdown
+            };
+            application.Bootstrapper.FindAndLoadAssemblies("Dapplo.CaliburnMicro*");
+            application.Run();
+        }
+    }
 }
