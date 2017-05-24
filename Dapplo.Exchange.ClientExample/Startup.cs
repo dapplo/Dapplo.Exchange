@@ -55,7 +55,6 @@ namespace Dapplo.Exchange.ClientExample
             {
                 ShutdownMode = ShutdownMode.OnExplicitShutdown
             };
-            application.Bootstrapper.FindAndLoadAssemblies("Dapplo.CaliburnMicro*");
             application.Run();
         }
     }

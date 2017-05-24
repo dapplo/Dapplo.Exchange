@@ -34,7 +34,7 @@ using System.Reflection;
 // associated with an assembly.
 
 [assembly: AssemblyTitle("Dapplo.Exchange")]
-[assembly: AssemblyDescription("Dapplo.Exchange contains supporting code for accessing a microsoft exchange server.")]
+[assembly: AssemblyDescription("Dapplo.Exchange contains supporting code for accessing a Microsoft Exchange server.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Dapplo")]
 [assembly: AssemblyProduct("Dapplo.Exchange")]
