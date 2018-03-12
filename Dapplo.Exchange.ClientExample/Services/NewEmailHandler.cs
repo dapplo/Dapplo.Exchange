@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using Caliburn.Micro;
 using Dapplo.CaliburnMicro;
 using Dapplo.Exchange.ClientExample.UseCases.Mail.ViewModels;
