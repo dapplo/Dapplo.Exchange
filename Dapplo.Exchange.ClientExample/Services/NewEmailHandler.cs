@@ -10,8 +10,8 @@ namespace Dapplo.Exchange.ClientExample.Services
     /// <summary>
     /// Handle email messages, and show a notification
     /// </summary>
-    [Export(typeof(IUiService))]
-    public class NewEmailHandler : IUiService, IHandle<EmailMessage>
+    [UiStartupAction]
+    public class NewEmailHandler : IUiStartupAction, IHandle<EmailMessage>
     {
         private readonly ExchangeService _exchangeService;
         private readonly IEventAggregator _eventAggregator;
@@ -25,11 +25,10 @@ namespace Dapplo.Exchange.ClientExample.Services
         public NewEmailHandler(
             IEventAggregator eventAggregator,
             ExchangeService exchangeService
-            )
+        )
         {
             _exchangeService = exchangeService;
             _eventAggregator = eventAggregator;
-            _eventAggregator.Subscribe(this);
         }
 
         /// <summary>
@@ -39,6 +38,12 @@ namespace Dapplo.Exchange.ClientExample.Services
         public void Handle(EmailMessage message)
         {
             _eventAggregator.PublishOnUIThread(new NewEmailViewModel(message, _exchangeService));
+        }
+
+        /// <inheritdoc />
+        public void Start()
+        {
+            _eventAggregator.Subscribe(this);
         }
     }
 }
