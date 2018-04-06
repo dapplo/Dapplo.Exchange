@@ -1,7 +1,7 @@
-﻿#region Dapplo 2016 - GNU Lesser General Public License
+﻿#region Dapplo 2016-2018 - GNU Lesser General Public License
 
 // Dapplo - building blocks for .NET applications
-// Copyright (C) 2016 Dapplo
+// Copyright (C) 2016-2018 Dapplo
 // 
 // For more information see: http://dapplo.net/
 // Dapplo repositories are hosted on GitHub: https://github.com/dapplo
@@ -31,14 +31,12 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using Caliburn.Micro;
 using Dapplo.CaliburnMicro.Extensions;
 using Dapplo.CaliburnMicro.Menu;
 using Dapplo.CaliburnMicro.NotifyIconWpf;
 using Dapplo.CaliburnMicro.NotifyIconWpf.ViewModels;
 using Dapplo.Exchange.ClientExample.Models;
 using MahApps.Metro.IconPacks;
-using Microsoft.Exchange.WebServices.Data;
 
 #endregion
 
@@ -58,7 +56,7 @@ namespace Dapplo.Exchange.ClientExample.UseCases.ContextMenu.ViewModels
         /// <summary>
         /// Creates the tray icon
         /// </summary>
-        /// <param name="contextMenuTranslations"></param>
+        /// <param name="contextMenuTranslations">IContextMenuTranslations</param>
         [ImportingConstructor]
         public ExchangeTrayIconViewModel(IContextMenuTranslations contextMenuTranslations)
         {
