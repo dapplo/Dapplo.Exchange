@@ -10,13 +10,9 @@ assembly_info:
   assembly_version: '{version}'
   assembly_file_version: '{version}'
   assembly_informational_version: '{version}'
-install:
-  - choco install gitlink -y
 before_build:
   - nuget restore
   - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { $env:is_not_pr = "true"; }
-before_package:
-  - GitLink .\
 build:
   project: Dapplo.Exchange.sln
   publish_nuget: true
