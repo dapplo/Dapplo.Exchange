@@ -20,7 +20,7 @@ namespace Dapplo.Exchange.Tests
             _exchange = exchange;
         }
 
-        [Fact]
+        //[Fact]
         public async Task TestListEmails()
         {
             var emails = await _exchange.RetrieveMailsAsync(WellKnownFolderName.Inbox, 10).ConfigureAwait(true);
@@ -31,7 +31,7 @@ namespace Dapplo.Exchange.Tests
             }
         }
 
-        [Fact]
+        //[Fact]
         public async Task TestObserve()
         {
             await _exchange.Observe().FirstAsync();
