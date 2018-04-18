@@ -27,11 +27,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading;
 using System.Threading.Tasks;
 using Dapplo.ActiveDirectory;
 using Dapplo.ActiveDirectory.Entities;
@@ -39,7 +41,6 @@ using Dapplo.Exchange.Entity;
 using Dapplo.Log;
 using Dapplo.Utils;
 using Microsoft.Exchange.WebServices.Data;
-using Task = System.Threading.Tasks.Task;
 
 #endregion
 
@@ -48,7 +49,6 @@ namespace Dapplo.Exchange
     /// <summary>
     ///     This is a wrapper with a lot of convenience for the ExchangeService
     /// TODO: Make interface
-    /// TODO: Remove Async from methods when they actually are not async, leave this to the caller
     /// TODO: Implement Repository pattern?
     /// </summary>
     public class Exchange
@@ -75,208 +75,275 @@ namespace Dapplo.Exchange
         public ExchangeService Service { get; private set; }
 
         /// <summary>
-        ///     Use this to get notified of events, this uses StreamingNotifications
+        ///     Initialize the exchange server connection
         /// </summary>
-        /// <param name="notifyAction">the action to call when an event occurs</param>
-        /// <param name="wellKnownFolderName">WellKnownFolderName to look to, Inbox if none is specified</param>
-        /// <param name="eventTypes">params EventType, if nothing specified than EventType.NewMail is taken</param>
-        /// <returns>a disposable, when disposed the connection is closed and cleaned up</returns>
-        public IDisposable CreateEventSubscription(Action<IEnumerable<NotificationEvent>> notifyAction, WellKnownFolderName wellKnownFolderName = WellKnownFolderName.Inbox,
-            params EventType[] eventTypes)
+        public void Initialize()
         {
-            // TODO: Change to System.Reactive
-            if (eventTypes == null || eventTypes.Length == 0)
+            Service = new ExchangeService(_exchangeSettings.VersionToUse)
             {
-                eventTypes = new[] {EventType.NewMail};
-            }
-            var streamingSubscription = Service.SubscribeToStreamingNotifications(new FolderId[] {wellKnownFolderName}, eventTypes);
-
-            var connection = new StreamingSubscriptionConnection(Service, 1);
-            connection.AddSubscription(streamingSubscription);
-            connection.OnNotificationEvent += (sender, notificationEventArgs) =>
-            {
-                // Call action
-                notifyAction(notificationEventArgs.Events);
+                UseDefaultCredentials = _exchangeSettings.UseDefaultCredentials
             };
-            // Handle errors
-            connection.OnSubscriptionError += (sender, subscriptionErrorEventArgs) => {Log.Warn().WriteLine("Connection error: {0}", subscriptionErrorEventArgs.Exception.Message); };
 
-            // Use this to 
-            bool disposedConnection = false;
-
-            // As the time to live is maximum 30 minutes, the connection is closed by the server
-            connection.OnDisconnect += (sender, subscriptionErrorEventArgs) =>
+            if (!_exchangeSettings.UseDefaultCredentials)
             {
-                if (subscriptionErrorEventArgs.Exception != null || disposedConnection)
+                Log.Debug().WriteLine("Using credentials from the settings: {0}", _exchangeSettings.Username);
+                Service.Credentials = new NetworkCredential(_exchangeSettings.Username, _exchangeSettings.Password);
+            }
+
+            if (string.IsNullOrEmpty(_exchangeSettings.ExchangeUrl))
+            {
+                Log.Debug().WriteLine("Trying to resolve the email-address for the current user: {0}", Environment.UserName);
+                var emailAddress = Query.ForUser(Environment.UserName).Execute<IAdUser>().FirstOrDefault()?.Email;
+                if (emailAddress == null)
                 {
                     return;
                 }
-                // Connection closed by server, just reconnect
-                // See: https://msdn.microsoft.com/en-us/library/office/hh312849.aspx
-                // "This behavior is expected and is not an error condition"
-                connection.Open();
-            };
-
-            // Start the connection
-            connection.Open();
-
-            // Return a disposable which disposed the connection and unsubscribes the subscription
-            return SimpleDisposable.Create(() =>
-            {
-                disposedConnection = true;
-                connection.Dispose();
-                streamingSubscription.Unsubscribe();
-            });
-        }
-
-        /// <summary>
-        ///     Initialize the exchange server connection
-        /// </summary>
-        /// <param name="token">CancellationToken</param>
-        /// <returns>Task</returns>
-        public async Task InitializeAsync(CancellationToken token = default(CancellationToken))
-        {
-            await Task.Run(() =>
-            {
-                Service = new ExchangeService(_exchangeSettings.VersionToUse)
+                Log.Debug().WriteLine("Found Email-address for the current user: {0}, using auto-discovery.", emailAddress);
+                if (_exchangeSettings.AllowRedirectUrl)
                 {
-                    UseDefaultCredentials = _exchangeSettings.UseDefaultCredentials
-                };
-
-                if (!_exchangeSettings.UseDefaultCredentials)
-                {
-                    Log.Debug().WriteLine("Using credentials from the settings: {0}", _exchangeSettings.Username);
-                    Service.Credentials = new NetworkCredential(_exchangeSettings.Username, _exchangeSettings.Password);
-                }
-
-                if (string.IsNullOrEmpty(_exchangeSettings.ExchangeUrl))
-                {
-                    Log.Debug().WriteLine("Trying to resolve the email-address for the current user: {0}", Environment.UserName);
-                    var emailAddress = Query.ForUser(Environment.UserName).Execute<IAdUser>().FirstOrDefault()?.Email;
-                    if (emailAddress == null)
-                    {
-                        return;
-                    }
-                    Log.Debug().WriteLine("Found Email-address for the current user: {0}, using auto-discovery.", emailAddress);
-                    if (_exchangeSettings.AllowRedirectUrl)
-                    {
-                        Service.AutodiscoverUrl(emailAddress, RedirectionUrlValidationCallback);
-                    }
-                    else
-                    {
-                        Service.AutodiscoverUrl(emailAddress);
-                    }
-                    Log.Debug().WriteLine("Found Url {0}", Service.Url);
+                    Service.AutodiscoverUrl(emailAddress, RedirectionUrlValidationCallback);
                 }
                 else
                 {
-                    Log.Debug().WriteLine("Using exchange Url from the settings: {0}", _exchangeSettings.ExchangeUrl);
-                    Service.Url = new Uri(_exchangeSettings.ExchangeUrl);
+                    Service.AutodiscoverUrl(emailAddress);
                 }
-            }, token);
+                Log.Debug().WriteLine("Found Url {0}", Service.Url);
+            }
+            else
+            {
+                Log.Debug().WriteLine("Using exchange Url from the settings: {0}", _exchangeSettings.ExchangeUrl);
+                Service.Url = new Uri(_exchangeSettings.ExchangeUrl);
+            }
+        }
+
+        /// <summary>
+        ///     Use this to get notified of events, this uses StreamingNotifications
+        /// </summary>
+        /// <param name="wellKnownFolderName">WellKnownFolderName to look to, Inbox if none is specified</param>
+        /// <param name="eventTypes">params EventType, if nothing specified than EventType.NewMail is taken</param>
+        /// <returns>IObservable which publishes NotificationEvent</returns>
+        public IObservable<NotificationEvent> Observe(WellKnownFolderName wellKnownFolderName = WellKnownFolderName.Inbox, params EventType[] eventTypes)
+        {
+            if (eventTypes == null || eventTypes.Length == 0)
+            {
+                eventTypes = new[] { EventType.NewMail };
+            }
+
+            return Observable.Create<NotificationEvent>(
+                observer =>
+                {
+                    try
+                    {
+                        var streamingSubscription = Service.SubscribeToStreamingNotifications(new FolderId[] { wellKnownFolderName }, eventTypes);
+
+                        var connection = new StreamingSubscriptionConnection(Service, 1);
+                        connection.AddSubscription(streamingSubscription);
+                        connection.OnNotificationEvent += (sender, notificationEventArgs) =>
+                        {
+                            foreach (var notificationEvent in notificationEventArgs.Events)
+                            {
+                                observer.OnNext(notificationEvent);
+                            }
+                        };
+                        // Handle errors
+                        connection.OnSubscriptionError += (sender, subscriptionErrorEventArgs) => observer.OnError(subscriptionErrorEventArgs.Exception);
+
+                        // Use this to 
+                        bool disposedConnection = false;
+
+                        // As the time to live is maximum 30 minutes, the connection is closed by the server
+                        connection.OnDisconnect += (sender, subscriptionErrorEventArgs) =>
+                        {
+                            if (subscriptionErrorEventArgs.Exception != null || disposedConnection)
+                            {
+                                return;
+                            }
+                            // Connection closed by server, just reconnect
+                            // See: https://msdn.microsoft.com/en-us/library/office/hh312849.aspx
+                            // "This behavior is expected and is not an error condition"
+                            connection.Open();
+                        };
+
+                        // Start the connection
+                        connection.Open();
+
+                        // Return a disposable which disposed the connection and unsubscribes the subscription
+                        return SimpleDisposable.Create(() =>
+                        {
+                            disposedConnection = true;
+                            connection.Dispose();
+                            streamingSubscription.Unsubscribe();
+                        });
+                    }
+                    catch (Win32Exception e)
+                    {
+                        observer.OnError(e);
+                        return Disposable.Empty;
+                    }
+                });
+        }
+
+        /// <summary>
+        /// Retrieve Appointment
+        /// </summary>
+        /// <param name="limit">int default is 500</param>
+        /// <returns>IList of Appointment</returns>
+        public Task<IList<Appointment>> RetrieveAppointmentsAsync(int limit = 20)
+        {
+            var tcs = new TaskCompletionSource<IList<Appointment>>();
+
+            try
+            {
+                var properties = new PropertySet(ItemSchema.Subject, AppointmentSchema.Start, AppointmentSchema.End, new ExtendedPropertyDefinition(0x10f4, MapiPropertyType.Boolean));
+                Service.BeginSyncFolderItems(asyncResult =>
+                {
+                    try
+                    {
+                        var result = Service.EndSyncFolderItems(asyncResult);
+                        tcs.TrySetResult(result.Select(itemChange => itemChange.Item).OfType<Appointment>().ToList());
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        tcs.TrySetCanceled();
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.TrySetException(ex);
+                    }
+                }, null, WellKnownFolderName.Calendar, properties, null, limit, SyncFolderItemsScope.NormalItems, null);
+            }
+            catch
+            {
+                tcs.TrySetResult(Enumerable.Empty<Appointment>().ToList());
+                throw;
+            }
+
+            return tcs.Task;
         }
 
         /// <summary>
         ///     Retrieve appointment items from the exchange service
         /// </summary>
-        /// <returns>FindItemsResults with appointment</returns>
-        public async Task<IEnumerable<Appointment>> RetrieveAppointmentsAsync(DateTime startDate, DateTime endDate, int maxItems = 20,
-            CancellationToken token = default(CancellationToken))
+        /// <returns>IEnumerable with appointment</returns>
+        public IEnumerable<Appointment> RetrieveAppointments(DateTime startDate, DateTime endDate, int maxItems = 20)
         {
-            return await Task.Run(() =>
-            {
-                // Limit the properties returned to the appointment's subject, start time, and end time.
-                var propertySet = new PropertySet(ItemSchema.Subject, AppointmentSchema.Start, AppointmentSchema.End);
-                // Initialize the calendar folder object with only the folder ID. 
-                var calendar = CalendarFolder.Bind(Service, WellKnownFolderName.Calendar, propertySet);
-                // Set the start and end time and number of appointments to retrieve.
-                var calendarView = new CalendarView(startDate, endDate, maxItems);
-                // Retrieve a collection of appointments by using the calendar view.
-                return calendar.FindAppointments(calendarView);
-            }, token);
+            // Limit the properties returned to the appointment's subject, start time, and end time.
+            var propertySet = new PropertySet(ItemSchema.Subject, AppointmentSchema.Start, AppointmentSchema.End);
+            // Initialize the calendar folder object with only the folder ID. 
+            var calendar = CalendarFolder.Bind(Service, WellKnownFolderName.Calendar, propertySet);
+            // Set the start and end time and number of appointments to retrieve.
+            var calendarView = new CalendarView(startDate, endDate, maxItems);
+            // Retrieve a collection of appointments by using the calendar view.
+            return calendar.FindAppointments(calendarView);
         }
 
         /// <summary>
         ///     Retrieve contact items from the exchange service
         /// </summary>
         /// <returns>FindItemsResults with Item</returns>
-        public async Task<IEnumerable<Contact>> RetrieveContactsAsync(CancellationToken token = default(CancellationToken))
+        public IEnumerable<Contact> RetrieveContacts(int limit = 100)
         {
-            return await Task.Run(() =>
+            // Limit the properties returned
+            // Initialize the calendar folder object with only the folder ID. 
+            var contactsFolder = ContactsFolder.Bind(Service, WellKnownFolderName.Contacts);
+            // Set the amount of contacts to return
+            var itemView = new ItemView(limit);
+
+            // For later
+            var propertySet = new PropertySet(ItemSchema.Attachments, ContactSchema.GivenName, ContactSchema.Surname, ContactSchema.EmailAddresses);
+
+            // Retrieve a collection of items by using the itemview.
+            var itemsList = contactsFolder.FindItems(itemView);
+
+            return itemsList.OfType<Contact>().Select(item =>
             {
-                // Limit the properties returned
-                // Initialize the calendar folder object with only the folder ID. 
-                var contactsFolder = ContactsFolder.Bind(Service, WellKnownFolderName.Contacts);
-                // Set the amount of contacts to return
-                var itemView = new ItemView(100);
-
-                // For later
-                var propertySet = new PropertySet(ItemSchema.Attachments, ContactSchema.GivenName, ContactSchema.Surname, ContactSchema.EmailAddresses);
-
-                // Retrieve a collection of items by using the itemview.
-                var itemsList = contactsFolder.FindItems(itemView);
-
-                return itemsList.OfType<Contact>().Select(item =>
+                var contact = Contact.Bind(Service, item.Id, propertySet);
+                foreach (var fileAttachment in contact.Attachments.OfType<FileAttachment>())
                 {
-                    var contact = Contact.Bind(Service, item.Id, propertySet);
-                    foreach (var fileAttachment in contact.Attachments.OfType<FileAttachment>())
+                    if (!fileAttachment.IsContactPhoto)
                     {
-                        if (!fileAttachment.IsContactPhoto)
-                        {
-                            continue;
-                        }
-                        Log.Verbose().WriteLine("Loading contact photo attachment for {1}, {0}", contact.GivenName, contact.Surname);
-                        // Load the attachment to access the content.
-                        fileAttachment.Load();
+                        continue;
                     }
-                    return contact;
-                });
-            }, token);
+                    Log.Verbose().WriteLine("Loading contact photo attachment for {1}, {0}", contact.GivenName, contact.Surname);
+                    // Load the attachment to access the content.
+                    fileAttachment.Load();
+                }
+                return contact;
+            });
+        }
+
+
+        /// <summary>
+        /// Retrieve email messages
+        /// </summary>
+        /// <param name="wellKnownFolderName">WellKnownFolderName</param>
+        /// <param name="limit">int default is 500</param>
+        /// <returns>IList of EmailMessage</returns>
+        public Task<IList<EmailMessage>> RetrieveMailsAsync(WellKnownFolderName wellKnownFolderName = WellKnownFolderName.Inbox, int limit = 500)
+        {
+            return RetrieveMailsAsync(new FolderId(wellKnownFolderName), limit);
         }
 
         /// <summary>
-        ///     Retrieve items from the exchange service Inbox
+        /// Retrieve email messages
         /// </summary>
-        /// <returns>FindItemsResults with Items</returns>
-        public async Task<IEnumerable<Item>> RetrieveMailsAsync(int maxItems = 20, CancellationToken token = default(CancellationToken))
+        /// <param name="folderId">FolderId</param>
+        /// <param name="limit">int default is 500</param>
+        /// <returns>IList of EmailMessage</returns>
+        public Task<IList<EmailMessage>> RetrieveMailsAsync(FolderId folderId, int limit = 500)
         {
-            return await Task.Run(() =>
+            var tcs = new TaskCompletionSource<IList<EmailMessage>>();
+
+            try
             {
-                // Limit the properties returned
-                // Initialize the calendar folder object with only the folder ID. 
-                var mailFolder = Folder.Bind(Service, WellKnownFolderName.Inbox);
-                // Set the amount of contacts to return
-                var itemView = new ItemView(maxItems);
-                // Retrieve a collection of items by using the itemview.
-                var itemsList = mailFolder.FindItems(itemView);
+                var properties = new PropertySet(BasePropertySet.IdOnly,
+                    EmailMessageSchema.From, ItemSchema.Subject, ItemSchema.HasAttachments, ItemSchema.DateTimeReceived,
+                    new ExtendedPropertyDefinition(0x10f4, MapiPropertyType.Boolean));
+                Service.BeginSyncFolderItems(asyncResult =>
+                {
+                    try
+                    {
+                        var result = Service.EndSyncFolderItems(asyncResult);
+                        tcs.TrySetResult(result.Select(itemChange => itemChange.Item).OfType<EmailMessage>().ToList());
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        tcs.TrySetCanceled();
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.TrySetException(ex);
+                    }
+                }, null, folderId, properties, null, limit, SyncFolderItemsScope.NormalItems, null);
+            }
+            catch
+            {
+                tcs.TrySetResult(Enumerable.Empty<EmailMessage>().ToList());
+                throw;
+            }
 
-                return itemsList;
-            }, token);
+            return tcs.Task;
         }
-
 
         /// <summary>
         ///     Retrieve MeetingRequest from the exchange service Inbox
         /// </summary>
         /// <returns>MeetingRequests</returns>
-        public async Task<IEnumerable<MeetingRequest>> RetrieveMeetingRequestsAsync(int maxItems = 20, CancellationToken token = default(CancellationToken))
+        public IEnumerable<MeetingRequest> RetrieveMeetingRequests(int maxItems = 20)
         {
-            return await Task.Run(() =>
-            {
-                // Limit the properties returned
-                // Initialize the calendar folder object with only the folder ID. 
-                var mailFolder = Folder.Bind(Service, WellKnownFolderName.Inbox);
-                // Set the amount of contacts to return
-                var itemView = new ItemView(maxItems);
+            // Limit the properties returned
+            // Initialize the calendar folder object with only the folder ID. 
+            var mailFolder = Folder.Bind(Service, WellKnownFolderName.Inbox);
+            // Set the amount of contacts to return
+            var itemView = new ItemView(maxItems);
 
-                // Retrieve a collection of items by using the itemview.
-                var itemsList = mailFolder.FindItems(itemView);
+            // Retrieve a collection of items by using the itemview.
+            var itemsList = mailFolder.FindItems(itemView);
 
-                // What properties we want to know
-                //var propertySet = new PropertySet(MeetingRequestSchema.MyResponseType, MeetingRequestSchema.Location, MeetingMessageSchema.ResponseType);
+            // What properties we want to know
+            //var propertySet = new PropertySet(MeetingRequestSchema.MyResponseType, MeetingRequestSchema.Location, MeetingMessageSchema.ResponseType);
 
-                return itemsList.OfType<MeetingRequest>();
-            }, token);
+            return itemsList.OfType<MeetingRequest>();
         }
 
         #region Validation

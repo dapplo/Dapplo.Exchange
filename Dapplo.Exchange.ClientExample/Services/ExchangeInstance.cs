@@ -27,13 +27,12 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Threading;
+using System.Reactive.Linq;
 using Caliburn.Micro;
 using Dapplo.Addons;
 using Dapplo.CaliburnMicro;
 using Dapplo.Log;
 using Microsoft.Exchange.WebServices.Data;
-using Task = System.Threading.Tasks.Task;
 
 #endregion
 
@@ -43,7 +42,7 @@ namespace Dapplo.Exchange.ClientExample.Services
     /// Starts the connection to exchange
     /// </summary>
     [StartupAction(StartupOrder = (int) CaliburnStartOrder.TrayIcons + 10), ShutdownAction]
-    public class ExchangeInstance : IAsyncStartupAction, IShutdownAction
+    public class ExchangeInstance : IStartupAction, IShutdownAction
     {
         private static readonly LogSource Log = new LogSource();
         private IDisposable _eventSubscription;
@@ -62,42 +61,29 @@ namespace Dapplo.Exchange.ClientExample.Services
         }
 
         /// <inheritdoc />
-        public async Task StartAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public void Start()
         {
             _exchange = new Exchange();
-            await _exchange.InitializeAsync(cancellationToken).ConfigureAwait(false);
+            _exchange.Initialize();
 
             ServiceExporter.Export(_exchange.Service);
 
-            _eventSubscription = _exchange.CreateEventSubscription(notificationEvents =>
+            _eventSubscription = _exchange.Observe(WellKnownFolderName.Inbox, EventType.NewMail).Subscribe(notificationEvent =>
             {
-                foreach (var notificationEvent in notificationEvents)
+                var itemEvent = (ItemEvent) notificationEvent;
+                var id = new ItemId(itemEvent.ItemId.UniqueId);
+                try
                 {
-                    switch (notificationEvent.EventType)
-                    {
-                        case EventType.NewMail:
-                            var itemEvent = (ItemEvent) notificationEvent;
-                            var id = new ItemId(itemEvent.ItemId.UniqueId);
-                            try
-                            {
-                                // Get Email
-                                var email = EmailMessage.Bind(_exchange.Service, id);
-                                // Call action
-                                EventAggregator.BeginPublishOnUIThread(email);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error().WriteLine(ex);
-                            }
-                            break;
-                        default:
-                            Log.Verbose().WriteLine("Ignoring event {0}", notificationEvent.EventType);
-                            break;
-                    }
+                    // Get Email
+                    var email = EmailMessage.Bind(_exchange.Service, id);
+                    // Call action
+                    EventAggregator.BeginPublishOnUIThread(email);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error().WriteLine(ex);
                 }
             });
-
-
         }
     }
 }

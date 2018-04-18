@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapplo.Exchange", "Dapplo.Exchange\Dapplo.Exchange.csproj", "{E5E51CA3-737E-443A-A1CB-CC3994B3C598}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapplo.Exchange.ClientExample", "Dapplo.Exchange.ClientExample\Dapplo.Exchange.ClientExample.csproj", "{7BB2E40D-2E75-4D74-B53E-47BE4EBE3381}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapplo.Exchange.Tests", "Dapplo.Exchange.Tests\Dapplo.Exchange.Tests.csproj", "{7AC6F04F-9A7D-4912-BF17-5A14E8C4BE92}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +23,15 @@ Global
 		{7BB2E40D-2E75-4D74-B53E-47BE4EBE3381}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BB2E40D-2E75-4D74-B53E-47BE4EBE3381}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BB2E40D-2E75-4D74-B53E-47BE4EBE3381}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AC6F04F-9A7D-4912-BF17-5A14E8C4BE92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AC6F04F-9A7D-4912-BF17-5A14E8C4BE92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AC6F04F-9A7D-4912-BF17-5A14E8C4BE92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AC6F04F-9A7D-4912-BF17-5A14E8C4BE92}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {27A3C66D-00D4-4985-81F1-C0F60644B0C5}
 	EndGlobalSection
 EndGlobal
