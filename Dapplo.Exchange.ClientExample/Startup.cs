@@ -28,6 +28,7 @@
 using System;
 using System.Diagnostics;
 using System.Windows;
+using Dapplo.Addons.Bootstrapper;
 using Dapplo.Log;
 using Dapplo.Log.Loggers;
 using Dapplo.CaliburnMicro.Dapp;
@@ -51,7 +52,11 @@ namespace Dapplo.Exchange.ClientExample
             // Initialize a debug logger for Dapplo packages
             LogSettings.RegisterDefaultLogger<DebugLogger>(LogLevels.Verbose);
 #endif
-            var application = new Dapplication("Dapplo.Exchange.ExampleClient", "05ffc82c-f7cd-45d3-831d-867660a231ff")
+            var applicationConfig = ApplicationConfig.Create()
+                .WithApplicationName("Dapplo.Exchange.ExampleClient")
+                .WithMutex("05ffc82c-f7cd-45d3-831d-867660a231ff")
+                .WithAssemblyNames("Dapplo.Addons.Config");
+            var application = new Dapplication(applicationConfig)
             {
                 ShutdownMode = ShutdownMode.OnExplicitShutdown
             };

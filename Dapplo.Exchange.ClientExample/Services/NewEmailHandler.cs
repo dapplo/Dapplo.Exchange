@@ -1,6 +1,4 @@
-﻿using System;
-using System.ComponentModel.Composition;
-using Caliburn.Micro;
+﻿using Caliburn.Micro;
 using Dapplo.CaliburnMicro;
 using Dapplo.Exchange.ClientExample.UseCases.Mail.ViewModels;
 using Microsoft.Exchange.WebServices.Data;
@@ -10,24 +8,22 @@ namespace Dapplo.Exchange.ClientExample.Services
     /// <summary>
     /// Handle email messages, and show a notification
     /// </summary>
-    [UiStartupAction]
-    public class NewEmailHandler : IUiStartupAction, IHandle<EmailMessage>
+    public class NewEmailHandler : IUiStartup, IHandle<EmailMessage>
     {
-        private readonly ExchangeService _exchangeService;
+        private readonly ExchangeServiceContainer _exchangeServiceContainer;
         private readonly IEventAggregator _eventAggregator;
 
         /// <summary>
         /// Setup the event handling
         /// </summary>
         /// <param name="eventAggregator">IEventAggregator</param>
-        /// <param name="exchangeService">ExchangeService</param>
-        [ImportingConstructor]
+        /// <param name="exchangeServiceContainer">ExchangeService</param>
         public NewEmailHandler(
             IEventAggregator eventAggregator,
-            ExchangeService exchangeService
+            ExchangeServiceContainer exchangeServiceContainer
         )
         {
-            _exchangeService = exchangeService;
+            _exchangeServiceContainer = exchangeServiceContainer;
             _eventAggregator = eventAggregator;
         }
 
@@ -37,7 +33,7 @@ namespace Dapplo.Exchange.ClientExample.Services
         /// <param name="message"></param>
         public void Handle(EmailMessage message)
         {
-            _eventAggregator.PublishOnUIThread(new NewEmailViewModel(message, _exchangeService));
+            _eventAggregator.PublishOnUIThread(new NewEmailViewModel(message, _exchangeServiceContainer.Service));
         }
 
         /// <inheritdoc />

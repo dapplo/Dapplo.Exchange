@@ -51,7 +51,7 @@ namespace Dapplo.Exchange
     /// TODO: Make interface
     /// TODO: Implement Repository pattern?
     /// </summary>
-    public class Exchange
+    public class ExchangeServiceContainer
     {
         private static readonly LogSource Log = new LogSource();
         private readonly bool _allowSelfSignedCertificates;
@@ -61,7 +61,7 @@ namespace Dapplo.Exchange
         ///     Create an exchange service wrapper with the supplied settings (or null if defaults)
         /// </summary>
         /// <param name="exchangeSettings">null for default</param>
-        public Exchange(IExchangeSettings exchangeSettings = null)
+        public ExchangeServiceContainer(IExchangeSettings exchangeSettings = null)
         {
             _exchangeSettings = exchangeSettings ?? new ExchangeSettings();
             _allowSelfSignedCertificates = _exchangeSettings.AllowSelfSignedCertificates;
@@ -77,7 +77,7 @@ namespace Dapplo.Exchange
         /// <summary>
         ///     Initialize the exchange server connection
         /// </summary>
-        public void Initialize()
+        public ExchangeServiceContainer Initialize()
         {
             Service = new ExchangeService(_exchangeSettings.VersionToUse)
             {
@@ -96,7 +96,7 @@ namespace Dapplo.Exchange
                 var emailAddress = Query.ForUser(Environment.UserName).Execute<IAdUser>().FirstOrDefault()?.Email;
                 if (emailAddress == null)
                 {
-                    return;
+                    return this;
                 }
                 Log.Debug().WriteLine("Found Email-address for the current user: {0}, using auto-discovery.", emailAddress);
                 if (_exchangeSettings.AllowRedirectUrl)
@@ -114,6 +114,8 @@ namespace Dapplo.Exchange
                 Log.Debug().WriteLine("Using exchange Url from the settings: {0}", _exchangeSettings.ExchangeUrl);
                 Service.Url = new Uri(_exchangeSettings.ExchangeUrl);
             }
+
+            return this;
         }
 
         /// <summary>

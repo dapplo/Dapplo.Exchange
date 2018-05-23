@@ -27,10 +27,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
+using Autofac.Features.AttributeFilters;
 using Dapplo.CaliburnMicro.Extensions;
 using Dapplo.CaliburnMicro.Menu;
 using Dapplo.CaliburnMicro.NotifyIconWpf;
@@ -45,21 +45,23 @@ namespace Dapplo.Exchange.ClientExample.UseCases.ContextMenu.ViewModels
     /// <summary>
     /// Defines the tray-icon
     /// </summary>
-    [Export(typeof(ITrayIconViewModel))]
     public sealed class ExchangeTrayIconViewModel : TrayIconViewModel
     {
+        private readonly IEnumerable<Lazy<IMenuItem>> _contextMenuItems;
         private readonly IContextMenuTranslations _contextMenuTranslations;
-
-        [ImportMany("contextmenu", typeof(IMenuItem))]
-        private IEnumerable<Lazy<IMenuItem>> ContextMenuItems { get; set; }
 
         /// <summary>
         /// Creates the tray icon
         /// </summary>
+        /// <param name="trayIconManager">ITrayIconManager</param>
+        /// <param name="contextMenuItems">IEnumerable IMenuItem</param>
         /// <param name="contextMenuTranslations">IContextMenuTranslations</param>
-        [ImportingConstructor]
-        public ExchangeTrayIconViewModel(IContextMenuTranslations contextMenuTranslations)
+        public ExchangeTrayIconViewModel(
+            ITrayIconManager trayIconManager,
+            [MetadataFilter("Menu","contextMenu")]IEnumerable<Lazy<IMenuItem>> contextMenuItems,
+            IContextMenuTranslations contextMenuTranslations) : base(trayIconManager)
         {
+            _contextMenuItems = contextMenuItems;
             _contextMenuTranslations = contextMenuTranslations;
         }
 
@@ -73,7 +75,7 @@ namespace Dapplo.Exchange.ClientExample.UseCases.ContextMenu.ViewModels
 
             var items = new List<IMenuItem>();
             // Lazy values
-            items.AddRange(ContextMenuItems.Select(lazy => lazy.Value));
+            items.AddRange(_contextMenuItems.Select(lazy => lazy.Value));
 
             items.Add(new MenuItem
             {

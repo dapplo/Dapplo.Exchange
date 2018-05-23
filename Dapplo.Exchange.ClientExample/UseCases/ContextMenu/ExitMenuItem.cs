@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.Composition;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 using Dapplo.CaliburnMicro.Extensions;
 using Dapplo.CaliburnMicro.Menu;
@@ -11,14 +10,13 @@ namespace Dapplo.Exchange.ClientExample.UseCases.ContextMenu
     /// <summary>
     ///     This will add an extry for the exit to the context menu
     /// </summary>
-    [Export("contextmenu", typeof(IMenuItem))]
+    [Menu("contextmenu")]
     public sealed class ExitMenuItem : ClickableMenuItem
     {
         /// <summary>
         /// Configure the exit menu item
         /// </summary>
         /// <param name="contextMenuTranslations"></param>
-        [ImportingConstructor]
         public ExitMenuItem(IContextMenuTranslations contextMenuTranslations)
         {
             // automatically update the DisplayName

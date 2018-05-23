@@ -11,11 +11,11 @@ namespace Dapplo.Exchange.Tests
     public class ExchangeTests
     {
         private static readonly LogSource Log = new LogSource();
-        private readonly Exchange _exchange;
+        private readonly ExchangeServiceContainer _exchange;
         public ExchangeTests(ITestOutputHelper testOutputHelper)
         {
             LogSettings.RegisterDefaultLogger<XUnitLogger>(LogLevels.Verbose, testOutputHelper);
-            var exchange = new Exchange();
+            var exchange = new ExchangeServiceContainer();
             exchange.Initialize();
             _exchange = exchange;
         }

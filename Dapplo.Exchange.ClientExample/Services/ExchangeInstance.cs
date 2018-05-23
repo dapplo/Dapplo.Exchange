@@ -26,8 +26,6 @@
 #region Usings
 
 using System;
-using System.ComponentModel.Composition;
-using System.Reactive.Linq;
 using Caliburn.Micro;
 using Dapplo.Addons;
 using Dapplo.CaliburnMicro;
@@ -41,18 +39,26 @@ namespace Dapplo.Exchange.ClientExample.Services
     /// <summary>
     /// Starts the connection to exchange
     /// </summary>
-    [StartupAction(StartupOrder = (int) CaliburnStartOrder.TrayIcons + 10), ShutdownAction]
-    public class ExchangeInstance : IStartupAction, IShutdownAction
+    [ServiceOrder((int)CaliburnStartOrder.TrayIcons + 10)]
+    public class ExchangeInstance : IStartup, IShutdown
     {
+        private readonly IEventAggregator _eventAggregator;
         private static readonly LogSource Log = new LogSource();
         private IDisposable _eventSubscription;
-        private Exchange _exchange = new Exchange();
+        private readonly ExchangeServiceContainer _exchangeServiceContainer;
 
-        [Import]
-        private IEventAggregator EventAggregator { get; set; }
-
-        [Import]
-        private IServiceExporter ServiceExporter { get; set; }
+        /// <summary>
+        /// Constructor for the
+        /// </summary>
+        /// <param name="exchangeServiceContainer">ExchangeServiceContainer</param>
+        /// <param name="eventAggregator">eventAggregator</param>
+        public ExchangeInstance(
+            ExchangeServiceContainer exchangeServiceContainer,
+            IEventAggregator eventAggregator)
+        {
+            _exchangeServiceContainer = exchangeServiceContainer;
+            _eventAggregator = eventAggregator;
+        }
 
         /// <inheritdoc />
         public void Shutdown()
@@ -63,21 +69,16 @@ namespace Dapplo.Exchange.ClientExample.Services
         /// <inheritdoc />
         public void Start()
         {
-            _exchange = new Exchange();
-            _exchange.Initialize();
-
-            ServiceExporter.Export(_exchange.Service);
-
-            _eventSubscription = _exchange.Observe(WellKnownFolderName.Inbox, EventType.NewMail).Subscribe(notificationEvent =>
+            _eventSubscription = _exchangeServiceContainer.Observe(WellKnownFolderName.Inbox, EventType.NewMail).Subscribe(notificationEvent =>
             {
                 var itemEvent = (ItemEvent) notificationEvent;
                 var id = new ItemId(itemEvent.ItemId.UniqueId);
                 try
                 {
                     // Get Email
-                    var email = EmailMessage.Bind(_exchange.Service, id);
+                    var email = EmailMessage.Bind(_exchangeServiceContainer.Service, id);
                     // Call action
-                    EventAggregator.BeginPublishOnUIThread(email);
+                    _eventAggregator.BeginPublishOnUIThread(email);
                 }
                 catch (Exception ex)
                 {
