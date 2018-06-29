@@ -58,7 +58,7 @@ namespace Dapplo.Exchange.ClientExample.UseCases.ContextMenu.ViewModels
         /// <param name="contextMenuTranslations">IContextMenuTranslations</param>
         public ExchangeTrayIconViewModel(
             ITrayIconManager trayIconManager,
-            [MetadataFilter("Menu","contextMenu")]IEnumerable<Lazy<IMenuItem>> contextMenuItems,
+            [MetadataFilter("Menu","systemtray")]IEnumerable<Lazy<IMenuItem>> contextMenuItems,
             IContextMenuTranslations contextMenuTranslations) : base(trayIconManager)
         {
             _contextMenuItems = contextMenuItems;

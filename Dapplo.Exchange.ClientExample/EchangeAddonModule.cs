@@ -2,6 +2,7 @@
 using Autofac.Features.AttributeFilters;
 using Dapplo.Addons;
 using Dapplo.CaliburnMicro;
+using Dapplo.CaliburnMicro.Menu;
 using Dapplo.CaliburnMicro.NotifyIconWpf;
 using Dapplo.Exchange.ClientExample.Services;
 using Dapplo.Exchange.ClientExample.UseCases.ContextMenu.ViewModels;
@@ -36,7 +37,12 @@ namespace Dapplo.Exchange.ClientExample
                 .As<ITrayIconViewModel>()
                 .WithAttributeFiltering()
                 .SingleInstance();
-            
+
+            builder.RegisterAssemblyTypes(ThisAssembly)
+                .AssignableTo<IMenuItem>()
+                .As<IMenuItem>()
+                .SingleInstance();
+
             base.Load(builder);
         }
     }

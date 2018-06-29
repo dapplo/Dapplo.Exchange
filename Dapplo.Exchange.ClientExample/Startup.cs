@@ -52,10 +52,13 @@ namespace Dapplo.Exchange.ClientExample
             // Initialize a debug logger for Dapplo packages
             LogSettings.RegisterDefaultLogger<DebugLogger>(LogLevels.Verbose);
 #endif
-            var applicationConfig = ApplicationConfig.Create()
+            var applicationConfig = ApplicationConfigBuilder
+                .Create()
                 .WithApplicationName("Dapplo.Exchange.ExampleClient")
                 .WithMutex("05ffc82c-f7cd-45d3-831d-867660a231ff")
-                .WithAssemblyNames("Dapplo.Addons.Config");
+                .WithConfigSupport()
+                .WithCaliburnMicro()
+                .BuildApplicationConfig();
             var application = new Dapplication(applicationConfig)
             {
                 ShutdownMode = ShutdownMode.OnExplicitShutdown

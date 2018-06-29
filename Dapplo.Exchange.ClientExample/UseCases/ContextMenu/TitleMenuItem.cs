@@ -9,7 +9,7 @@ namespace Dapplo.Exchange.ClientExample.UseCases.ContextMenu
     /// <summary>
     ///     This will add an extry for the exit to the context menu
     /// </summary>
-    [Menu("contextmenu")]
+    [Menu("systemtray")]
     public sealed class TitleMenuItem : MenuItem
     {
         /// <summary>
