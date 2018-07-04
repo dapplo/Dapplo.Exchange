@@ -39,7 +39,7 @@ namespace Dapplo.Exchange.ClientExample.Services
     /// <summary>
     /// Starts the connection to exchange
     /// </summary>
-    [ServiceOrder((int)CaliburnStartOrder.TrayIcons + 10)]
+    [Service(nameof(ExchangeInstance), nameof(CaliburnServices.CaliburnMicroBootstrapper))]
     public class ExchangeInstance : IStartup, IShutdown
     {
         private readonly IEventAggregator _eventAggregator;
@@ -67,7 +67,7 @@ namespace Dapplo.Exchange.ClientExample.Services
         }
 
         /// <inheritdoc />
-        public void Start()
+        public void Startup()
         {
             _eventSubscription = _exchangeServiceContainer.Observe(WellKnownFolderName.Inbox, EventType.NewMail).Subscribe(notificationEvent =>
             {

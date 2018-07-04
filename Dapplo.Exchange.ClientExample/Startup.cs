@@ -63,6 +63,10 @@ namespace Dapplo.Exchange.ClientExample
             {
                 ShutdownMode = ShutdownMode.OnExplicitShutdown
             };
+            if (application.WasAlreadyRunning)
+            {
+
+            }
             application.Run();
         }
     }

@@ -1,4 +1,5 @@
 ﻿using Caliburn.Micro;
+using Dapplo.Addons;
 using Dapplo.CaliburnMicro;
 using Dapplo.Exchange.ClientExample.UseCases.Mail.ViewModels;
 using Microsoft.Exchange.WebServices.Data;
@@ -8,7 +9,8 @@ namespace Dapplo.Exchange.ClientExample.Services
     /// <summary>
     /// Handle email messages, and show a notification
     /// </summary>
-    public class NewEmailHandler : IUiStartup, IHandle<EmailMessage>
+    [Service(nameof(NewEmailHandler), nameof(CaliburnServices.CaliburnMicroBootstrapper), TaskSchedulerName = "ui")]
+    public class NewEmailHandler : IStartup, IHandle<EmailMessage>
     {
         private readonly ExchangeServiceContainer _exchangeServiceContainer;
         private readonly IEventAggregator _eventAggregator;
@@ -37,7 +39,7 @@ namespace Dapplo.Exchange.ClientExample.Services
         }
 
         /// <inheritdoc />
-        public void Start()
+        public void Startup()
         {
             _eventAggregator.Subscribe(this);
         }

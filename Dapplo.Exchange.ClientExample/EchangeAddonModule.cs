@@ -1,7 +1,6 @@
 ﻿using Autofac;
 using Autofac.Features.AttributeFilters;
 using Dapplo.Addons;
-using Dapplo.CaliburnMicro;
 using Dapplo.CaliburnMicro.Menu;
 using Dapplo.CaliburnMicro.NotifyIconWpf;
 using Dapplo.Exchange.ClientExample.Services;
@@ -29,7 +28,7 @@ namespace Dapplo.Exchange.ClientExample
 
             builder
                 .RegisterType<NewEmailHandler>()
-                .As<IUiStartup>()
+                .As<IService>()
                 .SingleInstance();
 
             builder
