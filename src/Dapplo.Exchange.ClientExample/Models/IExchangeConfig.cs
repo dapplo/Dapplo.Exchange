@@ -36,6 +36,6 @@ namespace Dapplo.Exchange.ClientExample.Models
 	/// </summary>
 	[IniSection("Exchange")]
 	public interface IExchangeConfig : IExchangeSettings
-	{
+    {
 	}
 }

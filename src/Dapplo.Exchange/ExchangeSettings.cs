@@ -36,18 +36,25 @@ namespace Dapplo.Exchange
 	/// </summary>
 	public class ExchangeSettings : IExchangeSettings
 	{
+        /// <inheritdoc />
 		public bool AllowSelfSignedCertificates { get; set; } = true;
 
+        /// <inheritdoc />
 		public bool AllowRedirectUrl { get; set; } = true;
 
+        /// <inheritdoc />
 		public string ExchangeUrl { get; set; }
 
+        /// <inheritdoc />
 		public bool UseDefaultCredentials { get; set; } = true;
 
+        /// <inheritdoc />
 		public string Username { get; set; }
 
+        /// <inheritdoc />
 		public string Password { get; set; }
 
+        /// <inheritdoc />
 		public ExchangeVersion VersionToUse { get; set; } = ExchangeVersion.Exchange2010_SP2;
 	}
 }

@@ -32,8 +32,14 @@ using Dapplo.ActiveDirectory.Enums;
 
 namespace Dapplo.Exchange.Entity
 {
+    /// <summary>
+    /// This defines the smallest interface which can be used to get the information we need
+    /// </summary>
 	public interface IAdUser : IAdObject
 	{
+        /// <summary>
+        /// This property makes the email address available
+        /// </summary>
 		[AdProperty(UserProperties.EmailAddress)]
 		string Email { get; set; }
 	}

@@ -1,10 +1,12 @@
 ﻿using Autofac;
 using Autofac.Features.AttributeFilters;
 using Dapplo.Addons;
+using Dapplo.CaliburnMicro.Configuration;
 using Dapplo.CaliburnMicro.Menu;
 using Dapplo.CaliburnMicro.NotifyIconWpf;
 using Dapplo.Exchange.ClientExample.Services;
 using Dapplo.Exchange.ClientExample.UseCases.ContextMenu.ViewModels;
+using Dapplo.Ini;
 
 namespace Dapplo.Exchange.ClientExample
 {
@@ -16,6 +18,10 @@ namespace Dapplo.Exchange.ClientExample
         /// <inheritdoc />
         protected override void Load(ContainerBuilder builder)
         {
+            builder.Register(c => IniConfig.Current.Get<IUiConfiguration>())
+                .As<IUiConfiguration>()
+                .SingleInstance();
+
             builder
                 .Register(context => new ExchangeServiceContainer().Initialize())
                 .As<ExchangeServiceContainer>()

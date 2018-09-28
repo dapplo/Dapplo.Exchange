@@ -37,25 +37,46 @@ namespace Dapplo.Exchange
 	/// </summary>
 	public interface IExchangeSettings
 	{
-		[DefaultValue(true), Description("Do we allow self-signed certificates")]
+        /// <summary>
+        /// Allow that the HTTPS connection is made with a self signed certificate
+        /// </summary>
+        [DefaultValue(true), Description("Do we allow self-signed certificates")]
 		bool AllowSelfSignedCertificates { get; set; }
 
-		[DefaultValue(true), Description("Do we allow a redirect url")]
+        /// <summary>
+        /// Allow redirects to be followed
+        /// </summary>
+        [DefaultValue(true), Description("Do we allow a redirect url")]
 		bool AllowRedirectUrl { get; set; }
 
+        /// <summary>
+        /// What version of exchange needs to be used
+        /// </summary>
 		[DefaultValue(ExchangeVersion.Exchange2010_SP2), Description("Client version of the connection to the exchange server, this should not be higher as the server")]
 		ExchangeVersion VersionToUse { get; set; }
 
+        /// <summary>
+        /// If set to true, use the default credentials
+        /// </summary>
 		[DefaultValue(true), Description("Should the connection be made with the default credentials")]
 		bool UseDefaultCredentials { get; set; }
 
-		[Description("Exchange Url, this is used to connect to the exchange server. If left unset, it will be auto discovered")]
+        /// <summary>
+        /// Url to the exchange server
+        /// </summary>
+        [Description("Exchange Url, this is used to connect to the exchange server. If left unset, it will be auto discovered")]
 		string ExchangeUrl { get; set; }
 
-		[Description("Username for the connection")]
+        /// <summary>
+        /// Username which the connection uses
+        /// </summary>
+        [Description("Username for the connection")]
 		string Username { get; set; }
 
-		[Description("Password for the connection")]
+        /// <summary>
+        /// Password for the connection
+        /// </summary>
+        [Description("Password for the connection")]
 		string Password { get; set; }
 	}
 }

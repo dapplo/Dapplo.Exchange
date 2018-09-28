@@ -17,11 +17,11 @@
 	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   
-  <PropertyGroup>
+  <!--PropertyGroup>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Dapplo.Exchange.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
-  </PropertyGroup>
+  </PropertyGroup-->
   
   <PropertyGroup Condition="$(MSBuildProjectName.Contains('Tests')) Or $(MSBuildProjectName.Contains('Example'))">
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
