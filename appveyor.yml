@@ -1,26 +1,23 @@
-version: 0.1.{build}
+version: 0.2.{build}
 skip_tags: true
 os: Visual Studio 2017
 configuration: Release
 platform: Any CPU
-clone_depth: 2
-assembly_info:
-  patch: true
-  file: '**\AssemblyInfo.*'
-  assembly_version: '{version}'
-  assembly_file_version: '{version}'
-  assembly_informational_version: '{version}'
-before_build:
-  - nuget restore
-  - ps: if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) { $env:is_not_pr = "true"; }
-build:
-  project: Dapplo.Exchange.sln
-  publish_nuget: true
-  publish_nuget_symbols: false
-  verbosity: minimal
+test: off
+branches:
+  only:
+  - master
+  - /feature.*/
+environment:
+  NuGetApiKey:
+    secure: FkbOZI29wVSKdzHuFOq9tY8cq05Sy6vFKwvqYnUhDVamagkTUrjNJElPPoACP8Ov
+build_script:
+- ps: .\build.ps1 --settings_skipverification=true
 artifacts:
-- path: '*.nupkg'
-  name: NuGet package
+- path: src\**\*.nupkg
+- path: artifacts\**\site.zip
+- path: artifacts\*.xml
+- path: artifacts\*.html
 notifications:
 - provider: Email
   to:
@@ -28,12 +25,3 @@ notifications:
   on_build_success: true
   on_build_failure: true
   on_build_status_changed: false
-deploy:
-- provider: NuGet
-  skip_symbols: true
-  api_key:
-    secure: FkbOZI29wVSKdzHuFOq9tY8cq05Sy6vFKwvqYnUhDVamagkTUrjNJElPPoACP8Ov
-  on:
-    branch: master
-    is_not_pr: true
-    appveyor_repo_commit_message_extended: /\[release\]/
