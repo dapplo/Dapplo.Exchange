@@ -192,7 +192,7 @@ namespace Dapplo.Exchange
         /// <returns>IList of Appointment</returns>
         public Task<IList<Appointment>> RetrieveAppointmentsAsync(int limit = 20)
         {
-            var tcs = new TaskCompletionSource<IList<Appointment>>();
+            var tcs = new TaskCompletionSource<IList<Appointment>>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             try
             {
@@ -294,7 +294,7 @@ namespace Dapplo.Exchange
         /// <returns>IList of EmailMessage</returns>
         public Task<IList<EmailMessage>> RetrieveMailsAsync(FolderId folderId, int limit = 500)
         {
-            var tcs = new TaskCompletionSource<IList<EmailMessage>>();
+            var tcs = new TaskCompletionSource<IList<EmailMessage>>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             try
             {
