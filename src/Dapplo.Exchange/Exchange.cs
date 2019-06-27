@@ -1,7 +1,5 @@
-﻿#region Dapplo 2016-2018 - GNU Lesser General Public License
-
-// Dapplo - building blocks for .NET applications
-// Copyright (C) 2016-2018 Dapplo
+﻿// Dapplo - building blocks for .NET applications
+// Copyright (C) 2016-2019 Dapplo
 // 
 // For more information see: http://dapplo.net/
 // Dapplo repositories are hosted on GitHub: https://github.com/dapplo
@@ -21,8 +19,6 @@
 // You should have a copy of the GNU Lesser General Public License
 // along with Dapplo.Exchange. If not, see <http://www.gnu.org/licenses/lgpl.txt>.
 
-#endregion
-
 #region Usings
 
 using System;
@@ -37,9 +33,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Dapplo.ActiveDirectory;
 using Dapplo.ActiveDirectory.Entities;
-using Dapplo.Exchange.Entity;
+using Dapplo.Exchange.Entity.Impl;
 using Dapplo.Log;
-using Dapplo.Utils;
 using Microsoft.Exchange.WebServices.Data;
 
 #endregion
@@ -93,7 +88,7 @@ namespace Dapplo.Exchange
             if (string.IsNullOrEmpty(_exchangeSettings.ExchangeUrl))
             {
                 Log.Debug().WriteLine("Trying to resolve the email-address for the current user: {0}", Environment.UserName);
-                var emailAddress = Query.ForUser(Environment.UserName).Execute<IAdUser>().FirstOrDefault()?.Email;
+                var emailAddress = Query.ForUser(Environment.UserName).Execute<AdUser>().FirstOrDefault()?.Email;
                 if (emailAddress == null)
                 {
                     return this;
@@ -170,7 +165,7 @@ namespace Dapplo.Exchange
                         connection.Open();
 
                         // Return a disposable which disposed the connection and unsubscribes the subscription
-                        return SimpleDisposable.Create(() =>
+                        return Disposable.Create(() =>
                         {
                             disposedConnection = true;
                             connection.Dispose();

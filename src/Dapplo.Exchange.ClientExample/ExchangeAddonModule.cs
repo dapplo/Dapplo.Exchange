@@ -3,23 +3,37 @@ using Autofac.Features.AttributeFilters;
 using Dapplo.Addons;
 using Dapplo.CaliburnMicro.Configuration;
 using Dapplo.CaliburnMicro.Menu;
+using Dapplo.CaliburnMicro.Metro.Configuration;
 using Dapplo.CaliburnMicro.NotifyIconWpf;
+using Dapplo.Config.Ini;
+using Dapplo.Config.Language;
+using Dapplo.Exchange.ClientExample.Models;
+using Dapplo.Exchange.ClientExample.Models.Impl;
 using Dapplo.Exchange.ClientExample.Services;
 using Dapplo.Exchange.ClientExample.UseCases.ContextMenu.ViewModels;
-using Dapplo.Ini;
 
 namespace Dapplo.Exchange.ClientExample
 {
     /// <summary>
     /// Configure the builder for Exchange
     /// </summary>
-    public class EchangeAddonModule : AddonModule
+    public class ExchangeAddonModule : AddonModule
     {
         /// <inheritdoc />
         protected override void Load(ContainerBuilder builder)
         {
-            builder.Register(c => IniConfig.Current.Get<IUiConfiguration>())
+            builder
+                .RegisterType<ExchangeConfig>()
+                .As<IIniSection>()
+                .As<IExchangeConfig>()
+                .As<IMetroUiConfiguration>()
                 .As<IUiConfiguration>()
+                .SingleInstance();
+
+            builder
+                .RegisterType<ContextMenuTranslations>()
+                .As<IContextMenuTranslations>()
+                .As<ILanguage>()
                 .SingleInstance();
 
             builder

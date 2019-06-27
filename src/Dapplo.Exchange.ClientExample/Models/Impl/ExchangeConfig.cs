@@ -19,38 +19,28 @@
 // You should have a copy of the GNU Lesser General Public License
 // along with Dapplo.Exchange. If not, see <http://www.gnu.org/licenses/lgpl.txt>.
 
-#region Usings
 
+using System.Collections.Generic;
+using System.Windows;
+using Dapplo.Config.Ini;
+using Dapplo.Windows.User32.Structs;
 using Microsoft.Exchange.WebServices.Data;
 
-#endregion
-
-namespace Dapplo.Exchange
+namespace Dapplo.Exchange.ClientExample.Models.Impl
 {
-	/// <summary>
-	/// Implementation of the IExchangeSettings, would not be needed if using Dapplo.InterfaceImpl
-	/// </summary>
-	public class ExchangeSettings : IExchangeSettings
-	{
-        /// <inheritdoc />
-		public bool AllowSelfSignedCertificates { get; set; } = true;
-
-        /// <inheritdoc />
-		public bool AllowRedirectUrl { get; set; } = true;
-
-        /// <inheritdoc />
-		public string ExchangeUrl { get; set; }
-
-        /// <inheritdoc />
-		public bool UseDefaultCredentials { get; set; } = true;
-
-        /// <inheritdoc />
-		public string Username { get; set; }
-
-        /// <inheritdoc />
-		public string Password { get; set; }
-
-        /// <inheritdoc />
-		public ExchangeVersion VersionToUse { get; set; } = ExchangeVersion.Exchange2010_SP2;
-	}
+    internal class ExchangeConfig : IniSectionBase<IExchangeConfig>, IExchangeConfig
+    {
+        public bool AllowSelfSignedCertificates { get; set; }
+        public bool AllowRedirectUrl { get; set; }
+        public ExchangeVersion VersionToUse { get; set; }
+        public bool UseDefaultCredentials { get; set; }
+        public string ExchangeUrl { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public WindowStartupLocation DefaultWindowStartupLocation { get; set; }
+        public bool AreWindowLocationsStored { get; set; }
+        public IDictionary<string, WindowPlacement> WindowLocations { get; set; }
+        public string Theme { get; set; }
+        public string ThemeColor { get; set; }
+    }
 }

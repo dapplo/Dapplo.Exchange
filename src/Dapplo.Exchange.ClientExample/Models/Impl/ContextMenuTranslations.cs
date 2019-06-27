@@ -19,38 +19,13 @@
 // You should have a copy of the GNU Lesser General Public License
 // along with Dapplo.Exchange. If not, see <http://www.gnu.org/licenses/lgpl.txt>.
 
-#region Usings
+using Dapplo.Config.Language;
 
-using Microsoft.Exchange.WebServices.Data;
-
-#endregion
-
-namespace Dapplo.Exchange
+namespace Dapplo.Exchange.ClientExample.Models.Impl
 {
-	/// <summary>
-	/// Implementation of the IExchangeSettings, would not be needed if using Dapplo.InterfaceImpl
-	/// </summary>
-	public class ExchangeSettings : IExchangeSettings
-	{
-        /// <inheritdoc />
-		public bool AllowSelfSignedCertificates { get; set; } = true;
-
-        /// <inheritdoc />
-		public bool AllowRedirectUrl { get; set; } = true;
-
-        /// <inheritdoc />
-		public string ExchangeUrl { get; set; }
-
-        /// <inheritdoc />
-		public bool UseDefaultCredentials { get; set; } = true;
-
-        /// <inheritdoc />
-		public string Username { get; set; }
-
-        /// <inheritdoc />
-		public string Password { get; set; }
-
-        /// <inheritdoc />
-		public ExchangeVersion VersionToUse { get; set; } = ExchangeVersion.Exchange2010_SP2;
-	}
+    internal class ContextMenuTranslations : LanguageBase<IContextMenuTranslations>, IContextMenuTranslations
+    {
+        public string Exit { get; }
+        public string Title { get; }
+    }
 }

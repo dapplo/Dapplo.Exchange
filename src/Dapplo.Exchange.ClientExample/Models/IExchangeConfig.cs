@@ -1,7 +1,5 @@
-﻿#region Dapplo 2016-2018 - GNU Lesser General Public License
-
-// Dapplo - building blocks for .NET applications
-// Copyright (C) 2016-2018 Dapplo
+﻿// Dapplo - building blocks for .NET applications
+// Copyright (C) 2016-2019 Dapplo
 // 
 // For more information see: http://dapplo.net/
 // Dapplo repositories are hosted on GitHub: https://github.com/dapplo
@@ -21,12 +19,11 @@
 // You should have a copy of the GNU Lesser General Public License
 // along with Dapplo.Exchange. If not, see <http://www.gnu.org/licenses/lgpl.txt>.
 
-#endregion
-
 #region Usings
 
-using Dapplo.Ini;
-
+using Dapplo.CaliburnMicro.Configuration;
+using Dapplo.CaliburnMicro.Metro.Configuration;
+using Dapplo.Config.Ini;
 #endregion
 
 namespace Dapplo.Exchange.ClientExample.Models
@@ -35,7 +32,7 @@ namespace Dapplo.Exchange.ClientExample.Models
 	/// Container for the exchange settings
 	/// </summary>
 	[IniSection("Exchange")]
-	public interface IExchangeConfig : IExchangeSettings
+	public interface IExchangeConfig : IExchangeSettings, IUiConfiguration, IMetroUiConfiguration
     {
 	}
 }
