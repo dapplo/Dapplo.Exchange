@@ -8,7 +8,6 @@ using Dapplo.CaliburnMicro.NotifyIconWpf;
 using Dapplo.Config.Ini;
 using Dapplo.Config.Language;
 using Dapplo.Exchange.ClientExample.Models;
-using Dapplo.Exchange.ClientExample.Models.Impl;
 using Dapplo.Exchange.ClientExample.Services;
 using Dapplo.Exchange.ClientExample.UseCases.ContextMenu.ViewModels;
 
@@ -23,7 +22,7 @@ namespace Dapplo.Exchange.ClientExample
         protected override void Load(ContainerBuilder builder)
         {
             builder
-                .RegisterType<ExchangeConfig>()
+                .Register(c => IniSection<IExchangeConfig>.Create())
                 .As<IIniSection>()
                 .As<IExchangeConfig>()
                 .As<IMetroUiConfiguration>()
@@ -31,7 +30,7 @@ namespace Dapplo.Exchange.ClientExample
                 .SingleInstance();
 
             builder
-                .RegisterType<ContextMenuTranslations>()
+                .Register(c => Language<IContextMenuTranslations>.Create())
                 .As<IContextMenuTranslations>()
                 .As<ILanguage>()
                 .SingleInstance();

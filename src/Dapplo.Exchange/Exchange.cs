@@ -19,8 +19,6 @@
 // You should have a copy of the GNU Lesser General Public License
 // along with Dapplo.Exchange. If not, see <http://www.gnu.org/licenses/lgpl.txt>.
 
-#region Usings
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -36,8 +34,6 @@ using Dapplo.ActiveDirectory.Entities;
 using Dapplo.Exchange.Entity.Impl;
 using Dapplo.Log;
 using Microsoft.Exchange.WebServices.Data;
-
-#endregion
 
 namespace Dapplo.Exchange
 {
@@ -343,8 +339,6 @@ namespace Dapplo.Exchange
             return itemsList.OfType<MeetingRequest>();
         }
 
-        #region Validation
-
         /// <summary>
         ///     This method validates the redirect Url, this is only called when a redirection is used
         /// </summary>
@@ -417,7 +411,5 @@ namespace Dapplo.Exchange
             // for default Exchange server installations, so return true.
             return true;
         }
-
-        #endregion
     }
 }

@@ -19,12 +19,8 @@
 // You should have a copy of the GNU Lesser General Public License
 // along with Dapplo.Exchange. If not, see <http://www.gnu.org/licenses/lgpl.txt>.
 
-#region Usings
-
 using System.ComponentModel;
 using Dapplo.Config.Language;
-
-#endregion
 
 namespace Dapplo.Exchange.ClientExample.Models
 {

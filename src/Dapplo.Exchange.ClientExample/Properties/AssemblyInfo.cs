@@ -1,6 +1,4 @@
-﻿#region Dapplo 2016-2019 - GNU Lesser General Public License
-
-// Dapplo - building blocks for .NET applications
+﻿// Dapplo - building blocks for .NET applications
 // Copyright (C) 2016-2019 Dapplo
 // 
 // For more information see: http://dapplo.net/
@@ -21,14 +19,8 @@
 // You should have a copy of the GNU Lesser General Public License
 // along with Dapplo.Exchange. If not, see <http://www.gnu.org/licenses/lgpl.txt>.
 
-#endregion
-
-#region Usings
-
 using System.Runtime.InteropServices;
 using System.Windows;
-
-#endregion
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
